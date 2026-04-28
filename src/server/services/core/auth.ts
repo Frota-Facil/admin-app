@@ -1,10 +1,10 @@
 import axios from "axios";
 
-export async function auth(cpf: string, senha: string) {
-  const { data } = await axios.post(
-    `${process.env.CORE_API_URL}/auth`,
-    { cpf, senha }
-  );
+export async function auth(cpf: string, password: string) {
+  const { data } = await axios.post(`${process.env.CORE_API_URL}/auth`, {
+    cpf,
+    password,
+  });
 
   return data;
 }

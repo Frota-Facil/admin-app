@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/server/services/core/auth";
 import { loginSchema } from "@/server/contracts/auth-schema";
+import { auth } from "@/server/services/core/auth";
 
 export async function POST(req: Request) {
   try {
@@ -12,6 +12,8 @@ export async function POST(req: Request) {
 
     const res = NextResponse.json({ success: true });
 
+    console.log(token);
+
     res.cookies.set("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -19,10 +21,11 @@ export async function POST(req: Request) {
     });
 
     return res;
-  } catch (err: any) {
+  } catch (err: unknown) {
+    console.error(err);
     return NextResponse.json(
       { error: "Credenciais inválidas" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 }

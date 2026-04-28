@@ -6,5 +6,5 @@ export const loginSchema = z.object({
     .length(11, "CPF deve ter 11 dígitos")
     .regex(/^\d+$/, "CPF deve conter apenas números"),
 
-  senha: z.string().min(6, "Senha inválida"),
+  senha: z.string().min(5, "Senha inválida"),
 });

@@ -1,8 +1,9 @@
 import axios from "axios";
 import { cookies } from "next/headers";
 
-export function getCoreApi() {
-  const token = cookies().get("token")?.value;
+export async function getCoreApi() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
 
   return axios.create({
     baseURL: process.env.CORE_API_URL,
