@@ -1,9 +1,13 @@
-import Users from "@/components/users"
+import Link from "next/link";
+import Users from "@/components/users";
 
 export default function Home() {
   return (
     <div>
       <h1>Admin App</h1>
+      <nav>
+        <Link href="/vehicles">Gerenciar veículos</Link>
+      </nav>
       <hr />
       <Users />
     </div>

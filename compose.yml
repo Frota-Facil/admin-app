@@ -11,6 +11,10 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
+      - CORE_API_URL=http://host.docker.internal:3333
+      - MINIO_UPLOAD_HOST=host.docker.internal
     env_file:
       - .env.local
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command: npm run dev
