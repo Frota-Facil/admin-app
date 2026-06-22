@@ -19,6 +19,7 @@ export default async function VehiclesPage() {
             <li key={vehicle.id}>
               {vehicle.model} - {vehicle.plate} - {vehicle.year} -{" "}
               {vehicle.status}{" "}
+              <Link href={`/vehicles/${vehicle.id}/requests`}>Requisições</Link>{" "}
               <Link href={`/vehicles/${vehicle.id}/edit`}>Editar</Link>
               <form action={deleteVehicleAction.bind(null, vehicle.id)}>
                 <button type="submit">Excluir</button>
