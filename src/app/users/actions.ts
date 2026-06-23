@@ -30,8 +30,8 @@ export async function createUserAction(formData: FormData) {
   };
 
   await createUserUseCase(input);
-  revalidatePath("/");
-  redirect("/");
+  revalidatePath("/users");
+  redirect("/users");
 }
 
 export async function updateUserAction(id: string, formData: FormData) {
@@ -47,11 +47,11 @@ export async function updateUserAction(id: string, formData: FormData) {
   };
 
   await updateUserUseCase(id, input);
-  revalidatePath("/");
-  redirect("/");
+  revalidatePath("/users");
+  redirect("/users");
 }
 
 export async function deleteUserAction(id: string) {
   await deleteUserUseCase(id);
-  revalidatePath("/");
+  revalidatePath("/users");
 }
