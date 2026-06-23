@@ -29,12 +29,20 @@ export default function Home() {
               </p>
             </div>
 
-            <Link
-              className="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
-              href="/vehicles"
-            >
-              Gerenciar veículos
-            </Link>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                href="/requests/pending"
+              >
+                Requisições pendentes
+              </Link>
+              <Link
+                className="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                href="/vehicles"
+              >
+                Gerenciar veículos
+              </Link>
+            </div>
           </div>
         </header>
 
