@@ -19,7 +19,7 @@ const mainNavItems: NavItem[] = [
   { href: "/", icon: DashboardIcon, label: "Dashboard" },
   { href: "/vehicles", icon: VehicleIcon, label: "Veículos" },
   { href: "/users", icon: UsersIcon, label: "Usuários" },
-  { disabled: true, icon: RequestsIcon, label: "Solicitações" },
+  { href: "/requests", icon: RequestsIcon, label: "Solicitações" },
   { disabled: true, icon: HistoryIcon, label: "Histórico" },
   { disabled: true, icon: MonitoringIcon, label: "Monitoramento" },
 ];

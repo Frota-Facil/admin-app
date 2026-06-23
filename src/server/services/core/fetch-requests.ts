@@ -1,11 +1,11 @@
 import { getCoreApi } from "@/lib/core-api";
 import { handleCoreAuthError } from "@/server/services/core/auth-error";
 
-export async function fetchPendingRequests() {
+export async function fetchRequests() {
   const api = await getCoreApi({ requireToken: true });
 
   try {
-    const { data } = await api.get("/admin/requests/pending");
+    const { data } = await api.get("/admin/requests");
     return data;
   } catch (error) {
     handleCoreAuthError(error);
