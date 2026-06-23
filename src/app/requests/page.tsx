@@ -25,6 +25,7 @@ export default async function RequestsPage() {
 
     return {
       department: user?.department ?? "Sem departamento",
+      createdAt: request.createdAt.toISOString(),
       destination: request.destination ?? "",
       endDate: request.predictedEndDate.toISOString(),
       id: request.id,

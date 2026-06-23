@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { type ComponentType, useState } from "react";
+import type { ComponentType } from "react";
 
 type IconProps = {
   className?: string;
@@ -14,6 +14,10 @@ type NavItem = {
   href?: string;
   icon: ComponentType<IconProps>;
   label: string;
+};
+
+type SidebarProps = {
+  isOpen: boolean;
 };
 
 const mainNavItems: NavItem[] = [
@@ -30,13 +34,12 @@ const systemNavItems: NavItem[] = [
   { disabled: true, icon: SettingsIcon, label: "Configurações" },
 ];
 
-export function Sidebar() {
+export function Sidebar({ isOpen }: SidebarProps) {
   const pathname = usePathname();
-  const [isOpen, setIsOpen] = useState(true);
 
   return (
     <aside
-      className={`flex min-h-screen shrink-0 flex-col bg-slate-950 text-slate-300 shadow-xl transition-all duration-300 ${
+      className={`flex h-screen shrink-0 flex-col overflow-y-auto bg-slate-950 text-slate-300 shadow-xl transition-all duration-300 ${
         isOpen ? "w-[264px]" : "w-[88px]"
       }`}
     >
@@ -64,21 +67,7 @@ export function Sidebar() {
         ) : null}
       </div>
 
-      <button
-        aria-label={isOpen ? "Recolher sidebar" : "Expandir sidebar"}
-        className="mx-6 mb-6 flex h-9 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 text-slate-400 transition hover:border-slate-700 hover:text-white"
-        onClick={() => setIsOpen((current) => !current)}
-        title={isOpen ? "Recolher sidebar" : "Expandir sidebar"}
-        type="button"
-      >
-        {isOpen ? (
-          <CollapseIcon className="h-4 w-4" />
-        ) : (
-          <ExpandIcon className="h-4 w-4" />
-        )}
-      </button>
-
-      <nav className="flex flex-1 flex-col gap-8 px-4">
+      <nav className="flex flex-1 flex-col gap-8 px-4 pt-2">
         <NavSection
           isOpen={isOpen}
           items={mainNavItems}
@@ -340,44 +329,6 @@ function SettingsIcon({ className }: IconProps) {
         stroke="currentColor"
         strokeLinejoin="round"
         strokeWidth="1.8"
-      />
-    </svg>
-  );
-}
-
-function CollapseIcon({ className }: IconProps) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <path
-        d="M15 6 9 12l6 6"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      />
-    </svg>
-  );
-}
-
-function ExpandIcon({ className }: IconProps) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <path
-        d="m9 6 6 6-6 6"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
       />
     </svg>
   );

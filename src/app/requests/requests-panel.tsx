@@ -8,6 +8,7 @@ import {
 } from "@/app/requests/actions";
 
 export type RequestListItem = {
+  createdAt: string;
   department: string;
   destination: string;
   endDate: string;
@@ -54,6 +55,13 @@ const statusDisplay = {
   },
 } satisfies Record<string, { className: string; label: string }>;
 
+const statusPriority = {
+  PENDING: 0,
+  APPROVED: 1,
+  REJECTED: 2,
+  COMPLETED: 3,
+} satisfies Record<string, number>;
+
 export function RequestsPanel({ requests }: RequestsPanelProps) {
   const [search, setSearch] = useState("");
   const [currentFilter, setCurrentFilter] = useState<FilterStatus>("ALL");
@@ -84,31 +92,34 @@ export function RequestsPanel({ requests }: RequestsPanelProps) {
   const filteredRequests = useMemo(() => {
     const normalizedSearch = normalizeText(search);
 
-    return requests.filter((request) => {
-      const status = normalizeStatus(request.status);
-      const matchesFilter = currentFilter === "ALL" || status === currentFilter;
+    return requests
+      .filter((request) => {
+        const status = normalizeStatus(request.status);
+        const matchesFilter =
+          currentFilter === "ALL" || status === currentFilter;
 
-      if (!matchesFilter) {
-        return false;
-      }
+        if (!matchesFilter) {
+          return false;
+        }
 
-      if (!normalizedSearch) {
-        return true;
-      }
+        if (!normalizedSearch) {
+          return true;
+        }
 
-      const searchableFields = [
-        request.userName,
-        request.department,
-        request.vehicleModel,
-        request.vehiclePlate,
-        request.destination,
-        request.reason,
-      ];
+        const searchableFields = [
+          request.userName,
+          request.department,
+          request.vehicleModel,
+          request.vehiclePlate,
+          request.destination,
+          request.reason,
+        ];
 
-      return searchableFields.some((field) =>
-        normalizeText(field).includes(normalizedSearch),
-      );
-    });
+        return searchableFields.some((field) =>
+          normalizeText(field).includes(normalizedSearch),
+        );
+      })
+      .sort(compareRequests);
   }, [currentFilter, requests, search]);
 
   return (
@@ -230,10 +241,10 @@ function RequestCard({ request }: RequestCardProps) {
 
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
             <InfoItem icon={<CalendarIcon className="h-4 w-4" />}>
-              {formatDate(request.startDate)}
+              {formatDateFromIso(request.startDate)}
             </InfoItem>
             <InfoItem icon={<ClockIcon className="h-4 w-4" />}>
-              {formatTimeRange(request.startDate, request.endDate)}
+              {formatTimeRangeFromIso(request.startDate, request.endDate)}
             </InfoItem>
             <InfoItem icon={<PurposeIcon className="h-4 w-4" />}>
               {request.reason}
@@ -332,6 +343,29 @@ function normalizeStatus(status: string) {
   return "COMPLETED";
 }
 
+function compareRequests(a: RequestListItem, b: RequestListItem) {
+  const priorityA = statusPriority[normalizeStatus(a.status)] ?? 99;
+  const priorityB = statusPriority[normalizeStatus(b.status)] ?? 99;
+
+  if (priorityA !== priorityB) {
+    return priorityA - priorityB;
+  }
+
+  return getRequestTimestamp(b) - getRequestTimestamp(a);
+}
+
+function getRequestTimestamp(request: RequestListItem) {
+  const createdAtTimestamp = Date.parse(request.createdAt);
+
+  if (!Number.isNaN(createdAtTimestamp)) {
+    return createdAtTimestamp;
+  }
+
+  const startDateTimestamp = Date.parse(request.startDate);
+
+  return Number.isNaN(startDateTimestamp) ? 0 : startDateTimestamp;
+}
+
 function normalizeText(value: string) {
   return value
     .normalize("NFD")
@@ -340,23 +374,101 @@ function normalizeText(value: string) {
     .toLocaleLowerCase("pt-BR");
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(new Date(value));
+// Keep request schedule display in UTC-03 without depending on browser timezone.
+const REQUEST_DISPLAY_UTC_OFFSET_MINUTES = -3 * 60;
+
+type DateTimeParts = {
+  day: string;
+  hour: string | null;
+  minute: string | null;
+  month: string;
+  year: string;
+};
+
+function formatDateFromIso(value?: string | null) {
+  const parts = getDateTimePartsFromIso(value);
+
+  if (!parts) {
+    return "—";
+  }
+
+  return `${parts.day}/${parts.month}/${parts.year}`;
 }
 
-function formatTimeRange(start: string, end: string) {
-  const formatter = new Intl.DateTimeFormat("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+function formatTimeFromIso(value?: string | null) {
+  const parts = getDateTimePartsFromIso(value);
 
-  return `${formatter.format(new Date(start))} - ${formatter.format(
-    new Date(end),
-  )}`;
+  if (!parts?.hour || !parts.minute) {
+    return "—";
+  }
+
+  return `${parts.hour}:${parts.minute}`;
+}
+
+function formatTimeRangeFromIso(start?: string | null, end?: string | null) {
+  const startTime = formatTimeFromIso(start);
+  const endTime = formatTimeFromIso(end);
+
+  if (startTime === "—" || endTime === "—") {
+    return "—";
+  }
+
+  return `${startTime} - ${endTime}`;
+}
+
+function getDateTimePartsFromIso(value?: string | null): DateTimeParts | null {
+  if (!value) {
+    return null;
+  }
+
+  if (!hasExplicitTimezone(value)) {
+    return getDateTimePartsFromLocalIso(value);
+  }
+
+  const timestamp = Date.parse(value);
+
+  if (Number.isNaN(timestamp)) {
+    return getDateTimePartsFromLocalIso(value);
+  }
+
+  const shiftedDate = new Date(
+    timestamp + REQUEST_DISPLAY_UTC_OFFSET_MINUTES * 60 * 1000,
+  );
+
+  return {
+    day: padDatePart(shiftedDate.getUTCDate()),
+    hour: padDatePart(shiftedDate.getUTCHours()),
+    minute: padDatePart(shiftedDate.getUTCMinutes()),
+    month: padDatePart(shiftedDate.getUTCMonth() + 1),
+    year: String(shiftedDate.getUTCFullYear()),
+  };
+}
+
+function getDateTimePartsFromLocalIso(value: string): DateTimeParts | null {
+  const [datePart, timePart] = value.split("T");
+  const [year, month, day] = datePart.split("-");
+
+  if (!year || !month || !day) {
+    return null;
+  }
+
+  const [hour, minute] = timePart?.split(":") ?? [];
+
+  return {
+    day: padDatePart(day),
+    hour: hour ? padDatePart(hour) : null,
+    minute: minute ? padDatePart(minute) : null,
+    month: padDatePart(month),
+    year,
+  };
+}
+
+function hasExplicitTimezone(value: string) {
+  return /(?:Z|[+-]\d{2}:?\d{2})$/i.test(value);
+}
+
+function padDatePart(value: number | string) {
+  return String(value).padStart(2, "0");
 }
 
 type IconProps = {
