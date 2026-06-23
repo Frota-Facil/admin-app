@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ComponentType, useState } from "react";
@@ -41,7 +42,14 @@ export function Sidebar() {
     >
       <div className="flex h-20 items-center gap-3 px-6">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-700 bg-white text-slate-950 shadow-sm">
-          <LogoIcon className="h-7 w-7" />
+          <Image
+            alt="Logo do SIF"
+            className="h-9 w-9 object-contain"
+            height={40}
+            priority
+            src="/images/logo.png"
+            width={40}
+          />
         </div>
 
         {isOpen ? (
@@ -179,40 +187,6 @@ function NavEntry({ isOpen, item, pathname }: NavEntryProps) {
     <Link className={className} href={item.href} title={item.label}>
       {content}
     </Link>
-  );
-}
-
-function LogoIcon({ className }: IconProps) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      viewBox="0 0 32 32"
-    >
-      <path
-        d="M7 20.5h9.7l3.5-9.5H9.6L7 20.5Z"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2.6"
-      />
-      <path
-        d="M20.3 11H24l2.7 5.1v4.4h-7.4"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2.6"
-      />
-      <circle cx="11" cy="23" r="2.4" fill="currentColor" />
-      <circle cx="23" cy="23" r="2.4" fill="currentColor" />
-      <path
-        d="M4 13h4M3 17h3.6"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="2.6"
-      />
-    </svg>
   );
 }
 

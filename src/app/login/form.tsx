@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 
@@ -54,13 +55,15 @@ export default function LoginForm() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-8 text-slate-950">
       <div className="flex w-full max-w-[380px] flex-col items-center">
-        <div className="mb-5 flex h-20 w-36 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="flex items-center gap-2">
-            <LogoMark />
-            <span className="text-3xl font-bold tracking-normal text-slate-950">
-              SIF
-            </span>
-          </div>
+        <div className="mb-5 flex h-[86px] w-[140px] items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <Image
+            alt="Logo do SIF"
+            className="h-[70px] w-[70px] object-contain"
+            height={70}
+            priority
+            src="/images/logo.png"
+            width={70}
+          />
         </div>
 
         <p className="mb-8 text-center text-sm font-medium text-slate-500">
@@ -150,40 +153,6 @@ function formatCpf(value: string) {
     .replace(/(\d{3})(\d)/, "$1.$2")
     .replace(/(\d{3})(\d)/, "$1.$2")
     .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-}
-
-function LogoMark() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="h-7 w-7 text-slate-950"
-      fill="none"
-      viewBox="0 0 32 32"
-    >
-      <path
-        d="M7 20.5h9.7l3.5-9.5H9.6L7 20.5Z"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2.6"
-      />
-      <path
-        d="M20.3 11H24l2.7 5.1v4.4h-7.4"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2.6"
-      />
-      <circle cx="11" cy="23" r="2.4" fill="currentColor" />
-      <circle cx="23" cy="23" r="2.4" fill="currentColor" />
-      <path
-        d="M4 13h4M3 17h3.6"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="2.6"
-      />
-    </svg>
-  );
 }
 
 function UserIcon() {
