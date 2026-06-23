@@ -1,8 +1,14 @@
 import { getCoreApi } from "@/lib/core-api";
+import { handleCoreAuthError } from "@/server/services/core/auth-error";
 
 export async function approveRequest(requestId: string) {
-  const api = await getCoreApi();
-  const { data } = await api.put(`/admin/requests/${requestId}/approve`, {});
+  const api = await getCoreApi({ requireToken: true });
 
-  return data;
+  try {
+    const { data } = await api.put(`/admin/requests/${requestId}/approve`, {});
+    return data;
+  } catch (error) {
+    handleCoreAuthError(error);
+    throw error;
+  }
 }
