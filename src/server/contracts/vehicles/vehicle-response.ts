@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { VEHICLE_STATUSES } from "./status";
 import { VEHICLE_TYPES } from "./type";
 
 export const vehicleResponseSchema = z.object({
@@ -9,7 +8,7 @@ export const vehicleResponseSchema = z.object({
   year: z.number(),
   odometer: z.number(),
   imageUrl: z.string().nullable(),
-  status: z.enum(VEHICLE_STATUSES),
+  status: z.string().trim().min(1),
   type: z.enum(VEHICLE_TYPES),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
