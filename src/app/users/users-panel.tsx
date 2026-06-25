@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { deleteUserAction } from "@/app/users/actions";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 import type { UserResponseDTO } from "@/server/contracts/users/user-schema";
 
 type UsersPanelProps = {
@@ -50,7 +51,7 @@ export function UsersPanel({ users }: UsersPanelProps) {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <label className="relative block w-[280px] max-w-full">
               <span className="sr-only">Buscar usuários</span>
               <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -63,22 +64,26 @@ export function UsersPanel({ users }: UsersPanelProps) {
               />
             </label>
 
-            <Link
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
-              href="/users/new"
-            >
-              <PlusIcon className="h-4 w-4" />
-              Novo Usuário
-            </Link>
+            <NotificationBell />
           </div>
         </div>
       </header>
 
       <div className="space-y-6 p-8">
-        <p className="text-sm font-medium text-slate-600">
-          {users.length}{" "}
-          {users.length === 1 ? "usuário cadastrado" : "usuários cadastrados"}
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm font-medium text-slate-600">
+            {users.length}{" "}
+            {users.length === 1 ? "usuário cadastrado" : "usuários cadastrados"}
+          </p>
+
+          <Link
+            className="inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white shadow-sm shadow-blue-600/20 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+            href="/users/new"
+          >
+            <PlusIcon className="h-4 w-4" />
+            Novo Usuário
+          </Link>
+        </div>
 
         {filteredUsers.length === 0 ? (
           <section className="rounded-lg border border-slate-200 bg-white p-10 text-center shadow-sm">
