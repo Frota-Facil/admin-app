@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { deleteVehicleAction } from "@/app/vehicles/actions";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 import type { VehicleResponseDTO } from "@/server/contracts/vehicles/vehicle-response";
 
 type VehiclesPanelProps = {
@@ -85,7 +86,7 @@ export function VehiclesPanel({ vehicles }: VehiclesPanelProps) {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <label className="relative block w-[280px] max-w-full">
               <span className="sr-only">Buscar veículos</span>
               <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -98,22 +99,26 @@ export function VehiclesPanel({ vehicles }: VehiclesPanelProps) {
               />
             </label>
 
-            <Link
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
-              href="/vehicles/register"
-            >
-              <PlusIcon className="h-4 w-4" />
-              Novo Veículo
-            </Link>
+            <NotificationBell />
           </div>
         </div>
       </header>
 
       <div className="space-y-5 p-8">
-        <VehicleFilters
-          currentStatus={statusFilter}
-          onStatusChange={setStatusFilter}
-        />
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <VehicleFilters
+            currentStatus={statusFilter}
+            onStatusChange={setStatusFilter}
+          />
+
+          <Link
+            className="inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white shadow-sm shadow-blue-600/20 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+            href="/vehicles/register"
+          >
+            <PlusIcon className="h-4 w-4" />
+            Novo Veículo
+          </Link>
+        </div>
 
         <VehicleTable vehicles={filteredVehicles} />
       </div>
