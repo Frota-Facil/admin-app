@@ -23,25 +23,6 @@ const statusFilters = [
   { label: "Indisponível", value: "UNAVAILABLE" },
 ] satisfies { label: string; value: StatusFilter }[];
 
-const statusDisplay = {
-  AVAILABLE: {
-    label: "Disponível",
-    className: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  },
-  IN_USE: {
-    label: "Em Uso",
-    className: "border-blue-200 bg-blue-50 text-blue-700",
-  },
-  MAINTENANCE: {
-    label: "Manutenção",
-    className: "border-amber-200 bg-amber-50 text-amber-700",
-  },
-  UNAVAILABLE: {
-    label: "Indisponível",
-    className: "border-red-200 bg-red-50 text-red-700",
-  },
-} satisfies Record<DisplayStatus, { className: string; label: string }>;
-
 const typeLabels: Record<string, string> = {
   CAR: "Carro",
   MOTORCYCLE: "Motocicleta",
@@ -167,15 +148,13 @@ function VehicleTable({ vehicles }: VehicleTableProps) {
   return (
     <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[980px] border-collapse text-left">
+        <table className="w-full min-w-[760px] border-collapse text-left">
           <thead className="bg-slate-50">
             <tr className="border-b border-slate-200">
               <TableHead>Placa</TableHead>
               <TableHead>Modelo</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>KM</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Motorista</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </tr>
           </thead>
@@ -184,7 +163,7 @@ function VehicleTable({ vehicles }: VehicleTableProps) {
               <tr>
                 <td
                   className="px-4 py-10 text-center text-sm font-medium text-slate-500"
-                  colSpan={7}
+                  colSpan={5}
                 >
                   Nenhum veículo encontrado.
                 </td>
@@ -211,12 +190,6 @@ function VehicleTable({ vehicles }: VehicleTableProps) {
                   </td>
                   <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
                     {numberFormatter.format(vehicle.odometer)} km
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-4">
-                    <VehicleStatusBadge status={vehicle.status} />
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
-                    -
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
                     <div className="flex items-center justify-end gap-2">
@@ -258,24 +231,6 @@ function TableHead({ children, className = "" }: TableHeadProps) {
     >
       {children}
     </th>
-  );
-}
-
-type VehicleStatusBadgeProps = {
-  status: string;
-};
-
-function VehicleStatusBadge({ status }: VehicleStatusBadgeProps) {
-  const normalizedStatus = normalizeStatus(status);
-  const display = statusDisplay[normalizedStatus];
-
-  return (
-    <span
-      className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${display.className}`}
-      title={status}
-    >
-      {display.label}
-    </span>
   );
 }
 

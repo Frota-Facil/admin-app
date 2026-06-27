@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
 import { AdminLayout } from "@/components/layout/AdminLayout";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 
 export default function Home() {
   // TODO: integrar estes indicadores com o core-service quando o dashboard real for implementado.
@@ -15,13 +15,10 @@ export default function Home() {
   return (
     <AdminLayout>
       <div className="min-h-screen bg-slate-100">
-        <header className="border-b border-slate-200 bg-white px-8 py-6">
+        <header className="border-b border-slate-200 bg-white px-8 py-5">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-medium text-blue-600">
-                Painel administrativo
-              </p>
-              <h1 className="mt-1 text-3xl font-bold tracking-normal text-slate-950">
+              <h1 className="text-2xl font-bold tracking-normal text-slate-950">
                 Dashboard
               </h1>
               <p className="mt-1 text-sm text-slate-500">
@@ -29,20 +26,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <Link
-                className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
-                href="/requests/pending"
-              >
-                Requisições pendentes
-              </Link>
-              <Link
-                className="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
-                href="/vehicles"
-              >
-                Gerenciar veículos
-              </Link>
-            </div>
+            <NotificationBell />
           </div>
         </header>
 

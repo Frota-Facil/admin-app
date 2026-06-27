@@ -1,5 +1,6 @@
 "use client";
 
+import { Car } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -22,10 +23,10 @@ type SidebarProps = {
 
 const mainNavItems: NavItem[] = [
   { href: "/", icon: DashboardIcon, label: "Dashboard" },
-  { href: "/vehicles", icon: VehicleIcon, label: "Veículos" },
+  { href: "/vehicles", icon: Car, label: "Veículos" },
   { href: "/users", icon: UsersIcon, label: "Usuários" },
   { href: "/requests", icon: RequestsIcon, label: "Solicitações" },
-  { disabled: true, icon: HistoryIcon, label: "Histórico" },
+  { href: "/routes", icon: HistoryIcon, label: "Rotas" },
   { disabled: true, icon: MonitoringIcon, label: "Monitoramento" },
 ];
 
@@ -190,25 +191,6 @@ function DashboardIcon({ className }: IconProps) {
       <path
         d="M4 5.5A1.5 1.5 0 0 1 5.5 4h3A1.5 1.5 0 0 1 10 5.5v3A1.5 1.5 0 0 1 8.5 10h-3A1.5 1.5 0 0 1 4 8.5v-3ZM14 5.5A1.5 1.5 0 0 1 15.5 4h3A1.5 1.5 0 0 1 20 5.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 14 8.5v-3ZM4 15.5A1.5 1.5 0 0 1 5.5 14h3a1.5 1.5 0 0 1 1.5 1.5v3A1.5 1.5 0 0 1 8.5 20h-3A1.5 1.5 0 0 1 4 18.5v-3ZM14 15.5a1.5 1.5 0 0 1 1.5-1.5h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3a1.5 1.5 0 0 1-1.5-1.5v-3Z"
         stroke="currentColor"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
-      />
-    </svg>
-  );
-}
-
-function VehicleIcon({ className }: IconProps) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <path
-        d="M4 14.5 5.5 10A2 2 0 0 1 7.4 8.6h7.2a2 2 0 0 1 1.8 1.1l2.1 4.2M5 17h14M6.5 17.5v1M17.5 17.5v1M7 14h.01M17 14h.01"
-        stroke="currentColor"
-        strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth="1.8"
       />

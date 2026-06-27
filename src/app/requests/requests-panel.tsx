@@ -246,8 +246,11 @@ function RequestCard({ request }: RequestCardProps) {
             <InfoItem icon={<ClockIcon className="h-4 w-4" />}>
               {formatTimeRangeFromIso(request.startDate, request.endDate)}
             </InfoItem>
+            <InfoItem icon={<DestinationIcon className="h-4 w-4" />}>
+              {`Destino: ${request.destination || "Não informado"}`}
+            </InfoItem>
             <InfoItem icon={<PurposeIcon className="h-4 w-4" />}>
-              {request.reason}
+              {`Finalidade: ${request.reason}`}
             </InfoItem>
           </div>
         </div>
@@ -528,6 +531,25 @@ function ClockIcon({ className }: IconProps) {
         strokeLinejoin="round"
         strokeWidth="1.8"
       />
+    </svg>
+  );
+}
+
+function DestinationIcon({ className }: IconProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M12 21s6-5.1 6-10a6 6 0 1 0-12 0c0 4.9 6 10 6 10Z"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+      <circle cx="12" cy="11" r="2" stroke="currentColor" strokeWidth="1.8" />
     </svg>
   );
 }

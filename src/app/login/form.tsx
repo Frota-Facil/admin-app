@@ -1,5 +1,6 @@
 "use client";
 
+import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
@@ -26,6 +27,7 @@ export default function LoginForm() {
   const [cpf, setCpf] = useState("");
   const [senha, setSenha] = useState("");
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const router = useRouter();
@@ -113,9 +115,22 @@ export default function LoginForm() {
                   onChange={(e) => setSenha(e.target.value)}
                   placeholder="Digite sua senha"
                   required
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={senha}
                 />
+                <button
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                  aria-pressed={showPassword}
+                  className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                  onClick={() => setShowPassword((current) => !current)}
+                  type="button"
+                >
+                  {showPassword ? (
+                    <EyeOff aria-hidden="true" className="h-4 w-4" />
+                  ) : (
+                    <Eye aria-hidden="true" className="h-4 w-4" />
+                  )}
+                </button>
               </span>
             </label>
 

@@ -1,5 +1,9 @@
+"use client";
+
+import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { useState } from "react";
 import type { UserResponseDTO } from "@/server/contracts/users/user-schema";
 
 type UserFormProps = {
@@ -12,12 +16,17 @@ type UserFormProps = {
 const fieldControlClassName =
   "h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-300 focus:ring-4 focus:ring-blue-100";
 
+const passwordControlClassName =
+  "h-11 w-full rounded-lg border border-slate-200 bg-white py-0 pl-3 pr-11 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-300 focus:ring-4 focus:ring-blue-100";
+
 export function UserForm({
   action,
   cancelHref = "/users",
   submitLabel = "Salvar",
   user,
 }: UserFormProps) {
+  const [showPassword, setShowPassword] = useState(false);
+
   return (
     <form
       action={action}
@@ -57,14 +66,29 @@ export function UserForm({
         </FormField>
 
         <FormField htmlFor="password" label="Senha">
-          <input
-            className={fieldControlClassName}
-            id="password"
-            name="password"
-            placeholder={user ? "Deixe em branco para manter" : "Senha"}
-            required={!user}
-            type="password"
-          />
+          <div className="relative">
+            <input
+              className={passwordControlClassName}
+              id="password"
+              name="password"
+              placeholder={user ? "Deixe em branco para manter" : "Senha"}
+              required={!user}
+              type={showPassword ? "text" : "password"}
+            />
+            <button
+              aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              aria-pressed={showPassword}
+              className="absolute right-2 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+              onClick={() => setShowPassword((current) => !current)}
+              type="button"
+            >
+              {showPassword ? (
+                <EyeOff aria-hidden="true" className="h-4 w-4" />
+              ) : (
+                <Eye aria-hidden="true" className="h-4 w-4" />
+              )}
+            </button>
+          </div>
         </FormField>
 
         <FormField htmlFor="cpf" label="CPF">

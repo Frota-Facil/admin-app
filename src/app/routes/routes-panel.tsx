@@ -1,0 +1,216 @@
+"use client";
+
+import type { ReactNode } from "react";
+import { useMemo, useState } from "react";
+import { NotificationBell } from "@/components/layout/NotificationBell";
+
+export type RouteListItem = {
+  date: string;
+  department: string;
+  destination: string;
+  driverName: string;
+  duration: string;
+  id: string;
+  reason: string;
+  vehicleModel: string;
+  vehiclePlate: string;
+};
+
+type RoutesPanelProps = {
+  routes: RouteListItem[];
+};
+
+const routeDateFormatter = new Intl.DateTimeFormat("pt-BR", {
+  day: "2-digit",
+  month: "2-digit",
+  timeZone: "America/Fortaleza",
+  year: "numeric",
+});
+
+export function RoutesPanel({ routes }: RoutesPanelProps) {
+  const [search, setSearch] = useState("");
+
+  const filteredRoutes = useMemo(() => {
+    const normalizedSearch = normalizeText(search);
+
+    return routes.filter((route) => {
+      if (!normalizedSearch) {
+        return true;
+      }
+
+      const searchableFields = [
+        formatDate(route.date),
+        route.vehicleModel,
+        route.vehiclePlate,
+        route.driverName,
+        route.department,
+        route.duration,
+        route.destination,
+        route.reason,
+      ];
+
+      return searchableFields.some((field) =>
+        normalizeText(field).includes(normalizedSearch),
+      );
+    });
+  }, [routes, search]);
+
+  return (
+    <div className="min-h-screen bg-slate-100">
+      <header className="border-b border-slate-200 bg-white px-8 py-5">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-normal text-slate-950">
+              Rotas
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">
+              Registro das rotas finalizadas da frota
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <label className="relative block w-[280px] max-w-full">
+              <span className="sr-only">Buscar rotas</span>
+              <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 pl-10 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar..."
+                type="search"
+                value={search}
+              />
+            </label>
+
+            <NotificationBell />
+          </div>
+        </div>
+      </header>
+
+      <div className="p-8">
+        <RoutesTable routes={filteredRoutes} />
+      </div>
+    </div>
+  );
+}
+
+type RoutesTableProps = {
+  routes: RouteListItem[];
+};
+
+function RoutesTable({ routes }: RoutesTableProps) {
+  return (
+    <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[1080px] border-collapse text-left">
+          <thead className="bg-slate-50">
+            <tr className="border-b border-slate-200">
+              <TableHead>Data</TableHead>
+              <TableHead>Veículo</TableHead>
+              <TableHead>Motorista</TableHead>
+              <TableHead>Setor</TableHead>
+              <TableHead>Duração</TableHead>
+              <TableHead>Destino</TableHead>
+              <TableHead>Finalidade</TableHead>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-200">
+            {routes.length === 0 ? (
+              <tr>
+                <td
+                  className="px-4 py-10 text-center text-sm font-medium text-slate-500"
+                  colSpan={7}
+                >
+                  Nenhuma rota finalizada encontrada.
+                </td>
+              </tr>
+            ) : (
+              routes.map((route) => (
+                <tr className="transition hover:bg-slate-50/80" key={route.id}>
+                  <td className="whitespace-nowrap px-4 py-4 text-sm font-semibold text-slate-950">
+                    {formatDate(route.date)}
+                  </td>
+                  <td className="px-4 py-4">
+                    <p className="text-sm font-semibold text-slate-950">
+                      {route.vehicleModel}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {route.vehiclePlate}
+                    </p>
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
+                    {route.driverName}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
+                    {route.department}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
+                    {route.duration}
+                  </td>
+                  <td className="px-4 py-4 text-sm text-slate-600">
+                    {route.destination}
+                  </td>
+                  <td className="px-4 py-4 text-sm text-slate-600">
+                    {route.reason}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+type TableHeadProps = {
+  children: ReactNode;
+};
+
+function TableHead({ children }: TableHeadProps) {
+  return (
+    <th className="px-4 py-3 text-xs font-bold uppercase tracking-normal text-slate-500">
+      {children}
+    </th>
+  );
+}
+
+function formatDate(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  return routeDateFormatter.format(date);
+}
+
+function normalizeText(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLocaleLowerCase("pt-BR");
+}
+
+type IconProps = {
+  className?: string;
+};
+
+function SearchIcon({ className }: IconProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="m20 20-4.2-4.2M10.8 18a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+    </svg>
+  );
+}

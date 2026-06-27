@@ -149,21 +149,19 @@ function UserCard({ user }: UserCardProps) {
       <div className="mt-5 flex items-center justify-end gap-2 border-t border-slate-200 pt-4">
         <Link
           aria-label={`Editar usuário ${user.name}`}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+          className="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-100"
           href={`/users/${user.id}/edit`}
-          title="Editar"
         >
-          <EditIcon className="h-4 w-4" />
+          Editar
         </Link>
 
         <form action={deleteUserAction.bind(null, user.id)}>
           <button
             aria-label={`Excluir usuário ${user.name}`}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-4 focus:ring-red-100"
-            title="Excluir"
+            className="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold text-red-700 transition hover:bg-red-50 focus:outline-none focus:ring-4 focus:ring-red-100"
             type="submit"
           >
-            <TrashIcon className="h-4 w-4" />
+            Excluir
           </button>
         </form>
       </div>
@@ -325,44 +323,6 @@ function ShieldIcon({ className }: IconProps) {
     >
       <path
         d="M12 21s7-3.5 7-10V6.5L12 4 5 6.5V11c0 6.5 7 10 7 10Z"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
-      />
-    </svg>
-  );
-}
-
-function EditIcon({ className }: IconProps) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <path
-        d="m4 20 4.8-1.1L19.3 8.4a2.1 2.1 0 0 0-3-3L5.9 15.9 4 20Z"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
-      />
-    </svg>
-  );
-}
-
-function TrashIcon({ className }: IconProps) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <path
-        d="M9 4h6M4.5 7h15M8 7v12h8V7M10 10v6M14 10v6"
         stroke="currentColor"
         strokeLinecap="round"
         strokeLinejoin="round"
