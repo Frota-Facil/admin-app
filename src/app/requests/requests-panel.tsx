@@ -256,6 +256,15 @@ function RequestCard({ request }: RequestCardProps) {
         </div>
 
         <div className="flex shrink-0 items-center justify-end gap-2">
+          <Link
+            aria-label={`Ver detalhes da solicitação de ${request.userName}`}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+            href={`/vehicles/${request.vehicleId}/requests/${request.id}?from=requests`}
+            title="Ver detalhes"
+          >
+            <EyeIcon className="h-4 w-4" />
+          </Link>
+
           {isPending ? (
             <>
               <form action={approveRequestAction.bind(null, request.id)}>
@@ -277,16 +286,7 @@ function RequestCard({ request }: RequestCardProps) {
                 </button>
               </form>
             </>
-          ) : (
-            <Link
-              aria-label={`Ver detalhes da solicitação de ${request.userName}`}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
-              href={`/vehicles/${request.vehicleId}/requests/${request.id}`}
-              title="Ver detalhes"
-            >
-              <EyeIcon className="h-4 w-4" />
-            </Link>
-          )}
+          ) : null}
         </div>
       </div>
     </article>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Car } from "lucide-react";
+import { Car, FileText } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -27,6 +27,7 @@ const mainNavItems: NavItem[] = [
   { href: "/users", icon: UsersIcon, label: "Usuários" },
   { href: "/requests", icon: RequestsIcon, label: "Solicitações" },
   { href: "/routes", icon: HistoryIcon, label: "Rotas" },
+  { href: "/logs", icon: FileText, label: "Logs" },
   { disabled: true, icon: MonitoringIcon, label: "Monitoramento" },
 ];
 

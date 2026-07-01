@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { deleteUserAction } from "@/app/users/actions";
 import { NotificationBell } from "@/components/layout/NotificationBell";
+import { UserDetailsModal } from "@/components/users/UserDetailsModal";
 import type { UserResponseDTO } from "@/server/contracts/users/user-schema";
 
 type UsersPanelProps = {
@@ -21,6 +22,9 @@ const roleLabels: Record<string, string> = {
 
 export function UsersPanel({ users }: UsersPanelProps) {
   const [search, setSearch] = useState("");
+  const [selectedUser, setSelectedUser] = useState<UserResponseDTO | null>(
+    null,
+  );
 
   const filteredUsers = useMemo(() => {
     const normalizedSearch = normalizeText(search);
@@ -94,20 +98,32 @@ export function UsersPanel({ users }: UsersPanelProps) {
         ) : (
           <section className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
             {filteredUsers.map((user) => (
-              <UserCard key={user.id} user={user} />
+              <UserCard
+                key={user.id}
+                onViewDetails={setSelectedUser}
+                user={user}
+              />
             ))}
           </section>
         )}
       </div>
+
+      {selectedUser ? (
+        <UserDetailsModal
+          onClose={() => setSelectedUser(null)}
+          user={selectedUser}
+        />
+      ) : null}
     </div>
   );
 }
 
 type UserCardProps = {
+  onViewDetails: (user: UserResponseDTO) => void;
   user: UserResponseDTO;
 };
 
-function UserCard({ user }: UserCardProps) {
+function UserCard({ onViewDetails, user }: UserCardProps) {
   const roleLabel = roleLabelFor(user.role);
   const isAdmin = roleLabel === "Administrador" || roleLabel === "Gestor";
 
@@ -147,6 +163,16 @@ function UserCard({ user }: UserCardProps) {
       </dl>
 
       <div className="mt-5 flex items-center justify-end gap-2 border-t border-slate-200 pt-4">
+        <button
+          aria-label={`Ver detalhes do usuário ${user.name}`}
+          className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+          onClick={() => onViewDetails(user)}
+          title="Ver detalhes"
+          type="button"
+        >
+          <EyeIcon className="h-4 w-4" />
+        </button>
+
         <Link
           aria-label={`Editar usuário ${user.name}`}
           className="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-100"
@@ -290,6 +316,25 @@ function PlusIcon({ className }: IconProps) {
         strokeLinecap="round"
         strokeWidth="2"
       />
+    </svg>
+  );
+}
+
+function EyeIcon({ className }: IconProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M3.8 12s2.8-5 8.2-5 8.2 5 8.2 5-2.8 5-8.2 5-8.2-5-8.2-5Z"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+      <circle cx="12" cy="12" r="2.4" stroke="currentColor" strokeWidth="1.8" />
     </svg>
   );
 }
