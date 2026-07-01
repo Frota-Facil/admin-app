@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { deleteVehicleAction } from "@/app/vehicles/actions";
 import { NotificationBell } from "@/components/layout/NotificationBell";
+import { VehicleDetailsModal } from "@/components/vehicles/VehicleDetailsModal";
 import type { VehicleResponseDTO } from "@/server/contracts/vehicles/vehicle-response";
 
 type VehiclesPanelProps = {
@@ -15,12 +15,19 @@ type StatusFilter = "ALL" | DisplayStatus;
 
 type DisplayStatus = "AVAILABLE" | "IN_USE" | "MAINTENANCE" | "UNAVAILABLE";
 
+const statusLabels = {
+  AVAILABLE: "Disponível",
+  IN_USE: "Em Uso",
+  MAINTENANCE: "Manutenção",
+  UNAVAILABLE: "Indisponível",
+} satisfies Record<DisplayStatus, string>;
+
 const statusFilters = [
   { label: "Todos", value: "ALL" },
-  { label: "Disponível", value: "AVAILABLE" },
-  { label: "Em Uso", value: "IN_USE" },
-  { label: "Manutenção", value: "MAINTENANCE" },
-  { label: "Indisponível", value: "UNAVAILABLE" },
+  { label: statusLabels.AVAILABLE, value: "AVAILABLE" },
+  { label: statusLabels.IN_USE, value: "IN_USE" },
+  { label: statusLabels.MAINTENANCE, value: "MAINTENANCE" },
+  { label: statusLabels.UNAVAILABLE, value: "UNAVAILABLE" },
 ] satisfies { label: string; value: StatusFilter }[];
 
 const typeLabels: Record<string, string> = {
@@ -36,6 +43,8 @@ const numberFormatter = new Intl.NumberFormat("pt-BR");
 export function VehiclesPanel({ vehicles }: VehiclesPanelProps) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
+  const [selectedVehicle, setSelectedVehicle] =
+    useState<VehicleResponseDTO | null>(null);
 
   const filteredVehicles = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase("pt-BR");
@@ -101,8 +110,18 @@ export function VehiclesPanel({ vehicles }: VehiclesPanelProps) {
           </Link>
         </div>
 
-        <VehicleTable vehicles={filteredVehicles} />
+        <VehicleTable
+          onViewDetails={setSelectedVehicle}
+          vehicles={filteredVehicles}
+        />
       </div>
+
+      {selectedVehicle ? (
+        <VehicleDetailsModal
+          onClose={() => setSelectedVehicle(null)}
+          vehicle={selectedVehicle}
+        />
+      ) : null}
     </div>
   );
 }
@@ -141,10 +160,11 @@ function VehicleFilters({
 }
 
 type VehicleTableProps = {
+  onViewDetails: (vehicle: VehicleResponseDTO) => void;
   vehicles: VehicleResponseDTO[];
 };
 
-function VehicleTable({ vehicles }: VehicleTableProps) {
+function VehicleTable({ onViewDetails, vehicles }: VehicleTableProps) {
   return (
     <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
       <div className="overflow-x-auto">
@@ -193,6 +213,15 @@ function VehicleTable({ vehicles }: VehicleTableProps) {
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
                     <div className="flex items-center justify-end gap-2">
+                      <button
+                        aria-label={`Ver detalhes do veículo ${vehicle.plate}`}
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                        onClick={() => onViewDetails(vehicle)}
+                        title="Ver detalhes"
+                        type="button"
+                      >
+                        <EyeIcon className="h-4 w-4" />
+                      </button>
                       <Link
                         className="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-100"
                         href={`/vehicles/${vehicle.id}/edit`}
@@ -289,6 +318,25 @@ function PlusIcon({ className }: IconProps) {
         strokeLinecap="round"
         strokeWidth="2"
       />
+    </svg>
+  );
+}
+
+function EyeIcon({ className }: IconProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M3.8 12s2.8-5 8.2-5 8.2 5 8.2 5-2.8 5-8.2 5-8.2-5-8.2-5Z"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+      <circle cx="12" cy="12" r="2.4" stroke="currentColor" strokeWidth="1.8" />
     </svg>
   );
 }

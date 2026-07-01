@@ -1,12 +1,10 @@
 import { requestIdParamSchema } from "@/server/contracts/requests/request-id-param-schema";
-import { fetchVehicleRequestsUseCase } from "@/server/use-cases/fetch-vehicle-requests-use-case";
+import { requestResponseSchema } from "@/server/contracts/requests/request-response";
+import { fetchRequestById } from "@/server/services/core/fetch-request-by-id";
 
-export async function fetchRequestByIdUseCase(
-  vehicleId: string,
-  requestId: string,
-) {
+export async function fetchRequestByIdUseCase(requestId: string) {
   const id = requestIdParamSchema.parse({ id: requestId }).id;
-  const requests = await fetchVehicleRequestsUseCase(vehicleId);
+  const request = await fetchRequestById(id);
 
-  return requests.find((request) => request.id === id);
+  return request ? requestResponseSchema.parse(request) : null;
 }
