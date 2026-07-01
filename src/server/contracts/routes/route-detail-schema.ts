@@ -1,0 +1,27 @@
+import { z } from "zod";
+import { requestWithRelationsResponseSchema } from "@/server/contracts/requests/request-response";
+
+export const routeDetailSchema = z.object({
+  id: z.uuid(),
+  requestId: z.uuid(),
+  status: z.enum(["PENDING", "READY", "STARTED", "FINISHED"]),
+  description: z.string().nullish(),
+  reportMarkdown: z.string().nullish(),
+  startedAt: z.coerce.date().nullish(),
+  finishedAt: z.coerce.date().nullish(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+  request: requestWithRelationsResponseSchema,
+  tracks: z
+    .object({
+      id: z.uuid(),
+      routeId: z.uuid(),
+      xCoordinate: z.number().int(),
+      yCoordinate: z.number().int(),
+      createdAt: z.coerce.date(),
+      updatedAt: z.coerce.date(),
+    })
+    .array(),
+});
+
+export type RouteDetailDTO = z.infer<typeof routeDetailSchema>;

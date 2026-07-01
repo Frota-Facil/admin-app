@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { NotificationBell } from "@/components/layout/NotificationBell";
@@ -111,6 +112,7 @@ function RoutesTable({ routes }: RoutesTableProps) {
               <TableHead>Duração</TableHead>
               <TableHead>Destino</TableHead>
               <TableHead>Finalidade</TableHead>
+              <TableHead>Detalhes</TableHead>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
@@ -118,7 +120,7 @@ function RoutesTable({ routes }: RoutesTableProps) {
               <tr>
                 <td
                   className="px-4 py-10 text-center text-sm font-medium text-slate-500"
-                  colSpan={7}
+                  colSpan={8}
                 >
                   Nenhuma rota finalizada encontrada.
                 </td>
@@ -151,6 +153,9 @@ function RoutesTable({ routes }: RoutesTableProps) {
                   </td>
                   <td className="px-4 py-4 text-sm text-slate-600">
                     {route.reason}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
+                    <Link href={`/routes/${route.id}`}>Detalhes</Link>
                   </td>
                 </tr>
               ))
