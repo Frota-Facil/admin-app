@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { updateUserAction } from "@/app/users/actions";
 import { UserForm } from "@/app/users/user-form";
+import { BackButton } from "@/components/ui/BackButton";
 import { fetchUserByIdUseCase } from "@/server/use-cases/fetch-user-by-id-use-case";
 
 type EditUserPageProps = {
@@ -14,7 +14,9 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
 
   return (
     <main>
-      <Link href="/">Voltar</Link>
+      <div className="mb-4">
+        <BackButton href="/users" />
+      </div>
       <h1>Editar usuário</h1>
       <UserForm action={updateUser} user={user} />
     </main>

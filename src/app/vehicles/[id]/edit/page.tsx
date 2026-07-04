@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { updateVehicleAction } from "@/app/vehicles/actions";
 import { VehicleForm } from "@/app/vehicles/register/form";
+import { BackButton } from "@/components/ui/BackButton";
 import { fetchVehicleByIdUseCase } from "@/server/use-cases/fetch-vehicle-by-id-use-case";
 
 type EditVehiclePageProps = {
@@ -20,7 +20,9 @@ export default async function EditVehiclePage({
 
   return (
     <main>
-      <Link href="/vehicles">Voltar</Link>
+      <div className="mb-4">
+        <BackButton href="/vehicles" />
+      </div>
       <h1>Editar veículo</h1>
       <VehicleForm
         action={updateVehicleAction.bind(null, id)}

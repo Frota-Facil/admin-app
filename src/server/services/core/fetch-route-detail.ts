@@ -1,3 +1,4 @@
+import axios from "axios";
 import { getCoreApi } from "@/lib/core-api";
 import { handleCoreAuthError } from "@/server/services/core/auth-error";
 
@@ -10,6 +11,11 @@ export async function fetchRouteDetail(routeId: string) {
     return data;
   } catch (error) {
     handleCoreAuthError(error);
+
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      return null;
+    }
+
     throw error;
   }
 }

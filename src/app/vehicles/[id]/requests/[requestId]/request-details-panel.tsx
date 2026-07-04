@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { type ReactNode, useState } from "react";
+import { BackButton } from "@/components/ui/BackButton";
 import { UserDetailsModal } from "@/components/users/UserDetailsModal";
 import { VehicleDetailsModal } from "@/components/vehicles/VehicleDetailsModal";
 import type { RequestResponseDTO } from "@/server/contracts/requests/request-response";
@@ -82,13 +82,7 @@ export function RequestDetailsPanel({
       <header className="border-b border-slate-200 bg-white px-8 py-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <Link
-              className="inline-flex h-9 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-blue-100"
-              href={backHref}
-            >
-              <ArrowLeftIcon className="h-4 w-4" />
-              Voltar
-            </Link>
+            <BackButton href={backHref} />
             <h1 className="mt-4 text-2xl font-bold tracking-normal text-slate-950">
               Detalhes da solicitação
             </h1>
@@ -409,25 +403,6 @@ function formatPhone(phone?: string | null) {
 type IconProps = {
   className?: string;
 };
-
-function ArrowLeftIcon({ className }: IconProps) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <path
-        d="M19 12H5M11 6l-6 6 6 6"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      />
-    </svg>
-  );
-}
 
 function CarIcon({ className }: IconProps) {
   return (

@@ -1,5 +1,6 @@
 "use client";
 
+import { Eye } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
@@ -154,8 +155,15 @@ function RoutesTable({ routes }: RoutesTableProps) {
                   <td className="px-4 py-4 text-sm text-slate-600">
                     {route.reason}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
-                    <Link href={`/routes/${route.id}`}>Detalhes</Link>
+                  <td className="whitespace-nowrap px-4 py-4">
+                    <Link
+                      aria-label={`Ver detalhes da rota ${route.id}`}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                      href={`/routes/${route.id}`}
+                      title="Ver detalhes"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Link>
                   </td>
                 </tr>
               ))
