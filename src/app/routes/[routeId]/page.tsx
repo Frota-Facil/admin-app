@@ -1,10 +1,62 @@
-import Link from "next/link";
+import { notFound } from "next/navigation";
+import type { ReactNode } from "react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
+import { NotificationBell } from "@/components/layout/NotificationBell";
+import { BackButton } from "@/components/ui/BackButton";
+import type { RouteDetailDTO } from "@/server/contracts/routes/route-detail-schema";
 import { fetchRouteDetailUseCase } from "@/server/use-cases/fetch-route-detail-use-case";
 
 type RouteDetailPageProps = {
   params: Promise<{ routeId: string }>;
 };
+
+type DisplayStatus =
+  | "APPROVED"
+  | "COMPLETED"
+  | "FINISHED"
+  | "PENDING"
+  | "READY"
+  | "REJECTED"
+  | "STARTED";
+
+const statusDisplay = {
+  APPROVED: {
+    className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    label: "Aprovada",
+  },
+  COMPLETED: {
+    className: "border-blue-200 bg-blue-50 text-blue-700",
+    label: "Concluída",
+  },
+  FINISHED: {
+    className: "border-blue-200 bg-blue-50 text-blue-700",
+    label: "Finalizada",
+  },
+  PENDING: {
+    className: "border-amber-200 bg-amber-50 text-amber-700",
+    label: "Pendente",
+  },
+  READY: {
+    className: "border-indigo-200 bg-indigo-50 text-indigo-700",
+    label: "Pronta",
+  },
+  REJECTED: {
+    className: "border-red-200 bg-red-50 text-red-700",
+    label: "Recusada",
+  },
+  STARTED: {
+    className: "border-cyan-200 bg-cyan-50 text-cyan-700",
+    label: "Iniciada",
+  },
+} satisfies Record<DisplayStatus, { className: string; label: string }>;
+
+const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
 
 export default async function RouteDetailPage({
   params,
@@ -12,96 +64,409 @@ export default async function RouteDetailPage({
   const { routeId } = await params;
   const route = await fetchRouteDetailUseCase(routeId);
 
+  if (!route) {
+    notFound();
+  }
+
   return (
     <AdminLayout>
-      <main>
-        <Link href="/routes">Voltar</Link>
-        <h1>Detalhes da rota</h1>
+      <div className="min-h-screen bg-slate-100">
+        <header className="border-b border-slate-200 bg-white px-8 py-5">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <BackButton href="/routes" />
+              <h1 className="mt-4 text-2xl font-bold tracking-normal text-slate-950">
+                Detalhes da rota
+              </h1>
+              <p className="mt-1 text-sm text-slate-500">
+                Informações completas da rota finalizada
+              </p>
+            </div>
 
-        <h2>Rota</h2>
-        <dl>
-          <dt>ID</dt>
-          <dd>{route.id}</dd>
-          <dt>Solicitação</dt>
-          <dd>{route.requestId}</dd>
-          <dt>Status</dt>
-          <dd>{route.status}</dd>
-          <dt>Descrição</dt>
-          <dd>{route.description ?? "Sem descrição"}</dd>
-          <dt>Relatório</dt>
-          <dd>{route.reportMarkdown ?? "Sem relatório"}</dd>
-          <dt>Iniciada em</dt>
-          <dd>{formatDate(route.startedAt)}</dd>
-          <dt>Finalizada em</dt>
-          <dd>{formatDate(route.finishedAt)}</dd>
-          <dt>Criada em</dt>
-          <dd>{formatDate(route.createdAt)}</dd>
-          <dt>Atualizada em</dt>
-          <dd>{formatDate(route.updatedAt)}</dd>
-        </dl>
+            <div className="flex items-center gap-3">
+              <StatusBadge status={route.status} />
+              <NotificationBell />
+            </div>
+          </div>
+        </header>
 
-        <h2>Solicitação</h2>
-        <dl>
-          <dt>ID</dt>
-          <dd>{route.request.id}</dd>
-          <dt>Usuário</dt>
-          <dd>
-            {route.request.user.name} ({route.request.userId})
-          </dd>
-          <dt>Veículo</dt>
-          <dd>
-            {route.request.vehicle.model} ({route.request.vehicleId})
-          </dd>
-          <dt>Aprovada por</dt>
-          <dd>{route.request.approvedBy ?? "Não aprovada"}</dd>
-          <dt>Status</dt>
-          <dd>{route.request.status}</dd>
-          <dt>Início previsto</dt>
-          <dd>{formatDate(route.request.predictedStartDate)}</dd>
-          <dt>Fim previsto</dt>
-          <dd>{formatDate(route.request.predictedEndDate)}</dd>
-          <dt>Destino</dt>
-          <dd>{route.request.destination ?? "Sem destino"}</dd>
-          <dt>Motivo</dt>
-          <dd>{route.request.reason}</dd>
-          <dt>Criada em</dt>
-          <dd>{formatDate(route.request.createdAt)}</dd>
-          <dt>Atualizada em</dt>
-          <dd>{formatDate(route.request.updatedAt)}</dd>
-        </dl>
+        <div className="space-y-5 p-8">
+          <section className="grid gap-5 xl:grid-cols-2">
+            <DetailCard title="Dados da rota">
+              <dl className="grid gap-3 sm:grid-cols-2">
+                <DetailItem
+                  className="sm:col-span-2"
+                  label="ID da rota"
+                  value={<MutedId value={route.id} />}
+                />
+                <DetailItem
+                  label="Status da rota"
+                  value={<StatusBadge status={route.status} />}
+                />
+                <DetailItem
+                  label="ID da solicitação"
+                  value={<MutedId value={route.requestId} />}
+                />
+                <DetailItem
+                  className="sm:col-span-2"
+                  label="Descrição"
+                  value={route.description || "-"}
+                />
+                <DetailItem
+                  className="sm:col-span-2"
+                  label="Relatório"
+                  value={route.reportMarkdown || "Sem relatório"}
+                />
+                <DetailItem
+                  label="Iniciada em"
+                  value={formatDateTime(route.startedAt)}
+                />
+                <DetailItem
+                  label="Finalizada em"
+                  value={formatDateTime(route.finishedAt)}
+                />
+                <DetailItem
+                  label="Criada em"
+                  value={formatDateTime(route.createdAt)}
+                />
+                <DetailItem
+                  label="Atualizada em"
+                  value={formatDateTime(route.updatedAt)}
+                />
+              </dl>
+            </DetailCard>
 
-        <h2>Tracks</h2>
-        {route.tracks.length === 0 ? (
-          <p>Nenhum track encontrado.</p>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>X</th>
-                <th>Y</th>
-                <th>Criado em</th>
-                <th>Atualizado em</th>
-              </tr>
-            </thead>
-            <tbody>
-              {route.tracks.map((track) => (
-                <tr key={track.id}>
-                  <td>{track.id}</td>
-                  <td>{track.xCoordinate}</td>
-                  <td>{track.yCoordinate}</td>
-                  <td>{formatDate(track.createdAt)}</td>
-                  <td>{formatDate(track.updatedAt)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </main>
+            <DetailCard title="Dados da solicitação">
+              <dl className="grid gap-3 sm:grid-cols-2">
+                <DetailItem
+                  className="sm:col-span-2"
+                  label="ID da solicitação"
+                  value={<MutedId value={route.request.id} />}
+                />
+                <DetailItem
+                  label="Usuário / Motorista"
+                  value={
+                    <EntityValue
+                      detail={route.request.userId}
+                      label={route.request.user.name}
+                    />
+                  }
+                />
+                <DetailItem
+                  label="Veículo"
+                  value={
+                    <EntityValue
+                      detail={route.request.vehicleId}
+                      label={route.request.vehicle.model}
+                    />
+                  }
+                />
+                <DetailItem
+                  label="Aprovada por"
+                  value={
+                    route.request.approvedBy ? (
+                      <MutedId value={route.request.approvedBy} />
+                    ) : (
+                      "-"
+                    )
+                  }
+                />
+                <DetailItem
+                  label="Status da solicitação"
+                  value={<StatusBadge status={route.request.status} />}
+                />
+                <DetailItem
+                  label="Início previsto"
+                  value={formatDateTime(route.request.predictedStartDate)}
+                />
+                <DetailItem
+                  label="Fim previsto"
+                  value={formatDateTime(route.request.predictedEndDate)}
+                />
+                <DetailItem
+                  className="sm:col-span-2"
+                  label="Destino"
+                  value={route.request.destination || "-"}
+                />
+                <DetailItem
+                  className="sm:col-span-2"
+                  label="Motivo / Finalidade"
+                  value={route.request.reason || "-"}
+                />
+                <DetailItem
+                  label="Criada em"
+                  value={formatDateTime(route.request.createdAt)}
+                />
+                <DetailItem
+                  label="Atualizada em"
+                  value={formatDateTime(route.request.updatedAt)}
+                />
+              </dl>
+            </DetailCard>
+          </section>
+
+          <SummaryCard route={route} />
+
+          <TracksCard tracks={route.tracks} />
+        </div>
+      </div>
     </AdminLayout>
   );
 }
 
-function formatDate(value?: Date | null) {
-  return value ? value.toLocaleString("pt-BR") : "Não informado";
+type SummaryCardProps = {
+  route: RouteDetailDTO;
+};
+
+function SummaryCard({ route }: SummaryCardProps) {
+  return (
+    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      <h2 className="text-base font-bold tracking-normal text-slate-950">
+        Resumo da viagem
+      </h2>
+
+      <dl className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+        <SummaryItem label="Motorista" value={route.request.user.name} />
+        <SummaryItem label="Veículo" value={route.request.vehicle.model} />
+        <SummaryItem label="Destino" value={route.request.destination || "-"} />
+        <SummaryItem label="Finalidade" value={route.request.reason || "-"} />
+        <SummaryItem
+          label="Duração"
+          value={formatDuration(route.startedAt, route.finishedAt)}
+        />
+        <SummaryItem
+          label="Status"
+          value={<StatusBadge status={route.status} />}
+        />
+      </dl>
+    </section>
+  );
+}
+
+type TracksCardProps = {
+  tracks: RouteDetailDTO["tracks"];
+};
+
+function TracksCard({ tracks }: TracksCardProps) {
+  return (
+    <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+      <div className="border-b border-slate-200 px-5 py-4">
+        <h2 className="text-base font-bold tracking-normal text-slate-950">
+          Tracks
+        </h2>
+      </div>
+
+      {tracks.length === 0 ? (
+        <div className="p-10 text-center">
+          <p className="text-sm font-medium text-slate-500">
+            Nenhum track encontrado.
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px] border-collapse text-left">
+            <thead className="bg-slate-50">
+              <tr className="border-b border-slate-200">
+                <TableHead>Data/hora</TableHead>
+                <TableHead>Latitude / X</TableHead>
+                <TableHead>Longitude / Y</TableHead>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200">
+              {tracks.map((track) => (
+                <tr className="transition hover:bg-slate-50/80" key={track.id}>
+                  <td className="whitespace-nowrap px-4 py-4 text-sm font-semibold text-slate-950">
+                    {formatDateTime(track.createdAt)}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
+                    {track.xCoordinate}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
+                    {track.yCoordinate}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
+
+type DetailCardProps = {
+  children: ReactNode;
+  title: string;
+};
+
+function DetailCard({ children, title }: DetailCardProps) {
+  return (
+    <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      <h2 className="text-base font-bold tracking-normal text-slate-950">
+        {title}
+      </h2>
+      <div className="mt-4">{children}</div>
+    </article>
+  );
+}
+
+type DetailItemProps = {
+  className?: string;
+  label: string;
+  value?: ReactNode;
+};
+
+function DetailItem({ className = "", label, value }: DetailItemProps) {
+  return (
+    <div
+      className={`rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 ${className}`}
+    >
+      <dt className="text-xs font-semibold uppercase tracking-normal text-slate-500">
+        {label}
+      </dt>
+      <dd className="mt-1 whitespace-pre-wrap break-words text-sm font-semibold text-slate-950">
+        {value || "-"}
+      </dd>
+    </div>
+  );
+}
+
+type SummaryItemProps = {
+  label: string;
+  value?: ReactNode;
+};
+
+function SummaryItem({ label, value }: SummaryItemProps) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+      <dt className="text-xs font-semibold uppercase tracking-normal text-slate-500">
+        {label}
+      </dt>
+      <dd className="mt-1 truncate text-sm font-bold text-slate-950">
+        {value || "-"}
+      </dd>
+    </div>
+  );
+}
+
+type TableHeadProps = {
+  children: ReactNode;
+};
+
+function TableHead({ children }: TableHeadProps) {
+  return (
+    <th className="px-4 py-3 text-xs font-bold uppercase tracking-normal text-slate-500">
+      {children}
+    </th>
+  );
+}
+
+type EntityValueProps = {
+  detail?: string | null;
+  label: string;
+};
+
+function EntityValue({ detail, label }: EntityValueProps) {
+  return (
+    <span>
+      <span className="block">{label}</span>
+      {detail ? <MutedId value={detail} /> : null}
+    </span>
+  );
+}
+
+type MutedIdProps = {
+  value: string;
+};
+
+function MutedId({ value }: MutedIdProps) {
+  return (
+    <span className="block break-all font-mono text-xs font-medium text-slate-500">
+      {value}
+    </span>
+  );
+}
+
+type StatusBadgeProps = {
+  status: string;
+};
+
+function StatusBadge({ status }: StatusBadgeProps) {
+  const normalizedStatus = normalizeStatus(status);
+  const display = normalizedStatus
+    ? statusDisplay[normalizedStatus]
+    : {
+        className: "border-slate-200 bg-slate-100 text-slate-600",
+        label: status,
+      };
+
+  return (
+    <span
+      className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${display.className}`}
+      title={status}
+    >
+      {display.label}
+    </span>
+  );
+}
+
+function normalizeStatus(status: string): DisplayStatus | null {
+  const normalized = status.trim().toUpperCase();
+
+  if (normalized in statusDisplay) {
+    return normalized as DisplayStatus;
+  }
+
+  return null;
+}
+
+function formatDateTime(value?: Date | string | null) {
+  if (!value) {
+    return "-";
+  }
+
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  return dateTimeFormatter.format(date);
+}
+
+function formatDuration(
+  startedAt?: Date | string | null,
+  finishedAt?: Date | string | null,
+) {
+  if (!startedAt || !finishedAt) {
+    return "-";
+  }
+
+  const start = startedAt instanceof Date ? startedAt : new Date(startedAt);
+  const finish = finishedAt instanceof Date ? finishedAt : new Date(finishedAt);
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(finish.getTime())) {
+    return "-";
+  }
+
+  if (finish.getTime() < start.getTime()) {
+    return "-";
+  }
+
+  const durationInMinutes = Math.max(
+    0,
+    Math.floor((finish.getTime() - start.getTime()) / 60000),
+  );
+  const hours = Math.floor(durationInMinutes / 60);
+  const minutes = durationInMinutes % 60;
+
+  if (hours === 0) {
+    return `${minutes}min`;
+  }
+
+  if (minutes === 0) {
+    return `${hours}h`;
+  }
+
+  return `${hours}h ${minutes}min`;
 }

@@ -6,5 +6,5 @@ export async function fetchRouteDetailUseCase(routeId: string) {
   const { routeId: id } = routeIdParamSchema.parse({ routeId });
   const data = await fetchRouteDetail(id);
 
-  return routeDetailSchema.parse(data);
+  return data ? routeDetailSchema.parse(data) : null;
 }

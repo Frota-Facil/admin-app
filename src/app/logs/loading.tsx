@@ -1,30 +1,31 @@
-import { registerVehicleAction } from "@/app/vehicles/actions";
-import { VehicleForm } from "@/app/vehicles/register/form";
 import { AdminLayout } from "@/components/layout/AdminLayout";
-import { BackButton } from "@/components/ui/BackButton";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 
-export default function RegisterVehiclePage() {
+export default function LogsLoading() {
   return (
     <AdminLayout>
       <div className="min-h-screen bg-slate-100">
         <header className="border-b border-slate-200 bg-white px-8 py-5">
-          <div>
-            <div className="mb-4">
-              <BackButton href="/vehicles" />
-            </div>
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold tracking-normal text-slate-950">
-                Novo veículo
+                Logs
               </h1>
               <p className="mt-1 text-sm text-slate-500">
-                Cadastre um novo veículo na frota
+                Registro de atividades do sistema
               </p>
             </div>
+
+            <NotificationBell />
           </div>
         </header>
 
         <div className="p-8">
-          <VehicleForm action={registerVehicleAction} />
+          <section className="rounded-lg border border-slate-200 bg-white p-10 text-center shadow-sm">
+            <p className="text-sm font-medium text-slate-500">
+              Carregando logs...
+            </p>
+          </section>
         </div>
       </div>
     </AdminLayout>

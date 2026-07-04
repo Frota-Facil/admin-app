@@ -15,7 +15,7 @@ export function RouteEventListener() {
       const parsedEvent = routeStartedEventSchema.safeParse(parsedJson);
 
       if (!parsedEvent.success) {
-        console.error("Evento de rota iniciada inválido:", parsedEvent.error);
+        console.warn("Evento de rota iniciada inválido:", parsedEvent.error);
         return;
       }
 
@@ -32,7 +32,8 @@ export function RouteEventListener() {
     eventSource.addEventListener("route.started", handleRouteStarted);
 
     eventSource.onerror = () => {
-      console.error("Conexão SSE de rotas indisponível");
+      console.warn("SSE de rotas indisponível. Usando atualização manual.");
+      eventSource.close();
     };
 
     return () => {

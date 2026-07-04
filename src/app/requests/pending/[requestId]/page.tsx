@@ -4,6 +4,7 @@ import {
   approvePendingRequestAction,
   rejectPendingRequestAction,
 } from "@/app/requests/pending/[requestId]/actions";
+import { BackButton } from "@/components/ui/BackButton";
 import { fetchPendingRequestByIdUseCase } from "@/server/use-cases/fetch-pending-request-by-id-use-case";
 
 type PendingRequestDetailPageProps = {
@@ -22,7 +23,9 @@ export default async function PendingRequestDetailPage({
 
   return (
     <main>
-      <Link href="/requests/pending">Voltar</Link>
+      <div className="mb-4">
+        <BackButton href="/requests/pending" />
+      </div>
       <h1>Detalhes da requisição pendente</h1>
 
       <dl>

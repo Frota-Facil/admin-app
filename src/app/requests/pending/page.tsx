@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BackButton } from "@/components/ui/BackButton";
 import { fetchPendingRequestsUseCase } from "@/server/use-cases/fetch-pending-requests-use-case";
 
 export default async function PendingRequestsPage() {
@@ -6,7 +7,9 @@ export default async function PendingRequestsPage() {
 
   return (
     <main>
-      <Link href="/">Voltar</Link>
+      <div className="mb-4">
+        <BackButton href="/requests" />
+      </div>
       <h1>Requisições pendentes</h1>
 
       {requests.length === 0 ? (

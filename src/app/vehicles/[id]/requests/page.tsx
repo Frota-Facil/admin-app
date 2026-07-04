@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackButton } from "@/components/ui/BackButton";
 import { fetchVehicleByIdUseCase } from "@/server/use-cases/fetch-vehicle-by-id-use-case";
 import { fetchVehicleRequestsUseCase } from "@/server/use-cases/fetch-vehicle-requests-use-case";
 
@@ -21,7 +22,9 @@ export default async function VehicleRequestsPage({
 
   return (
     <main>
-      <Link href="/vehicles">Voltar</Link>
+      <div className="mb-4">
+        <BackButton href="/vehicles" />
+      </div>
       <h1>Requisições do veículo</h1>
       <p>
         {vehicle.model} - {vehicle.plate}
