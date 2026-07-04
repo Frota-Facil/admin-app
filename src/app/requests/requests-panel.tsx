@@ -6,6 +6,7 @@ import {
   approveRequestAction,
   rejectRequestAction,
 } from "@/app/requests/actions";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 
 export type RequestListItem = {
   createdAt: string;
@@ -135,17 +136,21 @@ export function RequestsPanel({ requests }: RequestsPanelProps) {
             </p>
           </div>
 
-          <label className="relative block w-[280px] max-w-full">
-            <span className="sr-only">Buscar solicitações</span>
-            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 pl-10 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-100"
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar..."
-              type="search"
-              value={search}
-            />
-          </label>
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <label className="relative block w-[280px] max-w-full">
+              <span className="sr-only">Buscar solicitações</span>
+              <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 pl-10 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar..."
+                type="search"
+                value={search}
+              />
+            </label>
+
+            <NotificationBell />
+          </div>
         </div>
       </header>
 
@@ -259,7 +264,7 @@ function RequestCard({ request }: RequestCardProps) {
           <Link
             aria-label={`Ver detalhes da solicitação de ${request.userName}`}
             className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
-            href={`/vehicles/${request.vehicleId}/requests/${request.id}?from=requests`}
+            href={`/requests/${request.id}`}
             title="Ver detalhes"
           >
             <EyeIcon className="h-4 w-4" />
