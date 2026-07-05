@@ -6,6 +6,7 @@ import type { ChangeEvent, ReactNode } from "react";
 import { useActionState, useEffect, useState } from "react";
 import type { UserFormState } from "@/app/users/actions";
 import type { UserResponseDTO } from "@/server/contracts/users/user-schema";
+import { formatCpf, formatPhone, onlyNumbers } from "@/utils/masks";
 
 type UserFormProps = {
   action: (
@@ -36,6 +37,10 @@ export function UserForm({
   const [photoError, setPhotoError] = useState("");
   const [photoFileName, setPhotoFileName] = useState("");
   const [state, formAction, isPending] = useActionState(action, {});
+  const [cpf, setCpf] = useState(formatCpf(user?.cpf ?? ""));
+  const [cnh, setCnh] = useState(onlyNumbers(user?.cnh ?? "").slice(0, 11));
+  const [phone, setPhone] = useState(formatPhone(user?.phone ?? ""));
+  const fieldErrors = state.fieldErrors ?? {};
 
   useEffect(() => {
     return () => {
@@ -78,6 +83,7 @@ export function UserForm({
     <form
       action={formAction}
       className="w-full max-w-none overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
+      noValidate
     >
       <div className="border-b border-slate-200 px-6 py-5">
         <h2 className="text-base font-bold tracking-normal text-slate-950">
@@ -95,37 +101,38 @@ export function UserForm({
       ) : null}
 
       <div className="grid gap-5 p-6 md:grid-cols-2 xl:grid-cols-3">
-        <FormField htmlFor="name" label="Nome">
+        <FormField error={fieldErrors.name} htmlFor="name" label="Nome">
           <input
             className={fieldControlClassName}
             defaultValue={user?.name}
             id="name"
             name="name"
             placeholder="Nome completo"
-            required
           />
         </FormField>
 
-        <FormField htmlFor="email" label="E-mail">
+        <FormField error={fieldErrors.email} htmlFor="email" label="E-mail">
           <input
             className={fieldControlClassName}
             defaultValue={user?.email}
             id="email"
             name="email"
             placeholder="usuario@email.com"
-            required
             type="email"
           />
         </FormField>
 
-        <FormField htmlFor="password" label="Senha">
+        <FormField
+          error={fieldErrors.password}
+          htmlFor="password"
+          label="Senha"
+        >
           <div className="relative">
             <input
               className={passwordControlClassName}
               id="password"
               name="password"
               placeholder={user ? "Deixe em branco para manter" : "Senha"}
-              required={!user}
               type={showPassword ? "text" : "password"}
             />
             <button
@@ -144,45 +151,52 @@ export function UserForm({
           </div>
         </FormField>
 
-        <FormField htmlFor="cpf" label="CPF">
+        <FormField error={fieldErrors.cpf} htmlFor="cpf" label="CPF">
           <input
             className={fieldControlClassName}
-            defaultValue={user?.cpf}
             id="cpf"
-            maxLength={11}
-            minLength={11}
-            name="cpf"
-            placeholder="Somente números"
-            required
-          />
-        </FormField>
-
-        <FormField htmlFor="cnh" label="CNH">
-          <input
-            className={fieldControlClassName}
-            defaultValue={user?.cnh ?? ""}
-            id="cnh"
-            maxLength={11}
-            minLength={11}
-            name="cnh"
-            placeholder="Somente números"
-          />
-        </FormField>
-
-        <FormField htmlFor="phone" label="Telefone">
-          <input
-            className={fieldControlClassName}
-            defaultValue={user?.phone}
-            id="phone"
+            inputMode="numeric"
             maxLength={14}
-            minLength={10}
-            name="phone"
-            placeholder="DDD + número"
-            required
+            name="cpf"
+            onChange={(event) => setCpf(formatCpf(event.target.value))}
+            placeholder="000.000.000-00"
+            value={cpf}
           />
         </FormField>
 
-        <FormField htmlFor="department" label="Departamento">
+        <FormField error={fieldErrors.cnh} htmlFor="cnh" label="CNH">
+          <input
+            className={fieldControlClassName}
+            id="cnh"
+            inputMode="numeric"
+            maxLength={11}
+            name="cnh"
+            onChange={(event) =>
+              setCnh(onlyNumbers(event.target.value).slice(0, 11))
+            }
+            placeholder="Somente números"
+            value={cnh}
+          />
+        </FormField>
+
+        <FormField error={fieldErrors.phone} htmlFor="phone" label="Telefone">
+          <input
+            className={fieldControlClassName}
+            id="phone"
+            inputMode="numeric"
+            maxLength={15}
+            name="phone"
+            onChange={(event) => setPhone(formatPhone(event.target.value))}
+            placeholder="(00) 00000-0000"
+            value={phone}
+          />
+        </FormField>
+
+        <FormField
+          error={fieldErrors.department}
+          htmlFor="department"
+          label="Departamento"
+        >
           <input
             className={fieldControlClassName}
             defaultValue={user?.department ?? ""}
@@ -192,7 +206,7 @@ export function UserForm({
           />
         </FormField>
 
-        <FormField htmlFor="role" label="Perfil">
+        <FormField error={fieldErrors.role} htmlFor="role" label="Perfil">
           <select
             className={fieldControlClassName}
             defaultValue={user?.role ?? "driver"}
@@ -206,6 +220,7 @@ export function UserForm({
 
         <FormField
           className="md:col-span-2 xl:col-span-3"
+          error={fieldErrors.photo}
           htmlFor="photo"
           label="Foto do motorista"
         >
@@ -292,6 +307,7 @@ export function UserForm({
 type FormFieldProps = {
   children: ReactNode;
   className?: string;
+  error?: string;
   htmlFor: string;
   label: string;
 };
@@ -299,6 +315,7 @@ type FormFieldProps = {
 function FormField({
   children,
   className = "",
+  error,
   htmlFor,
   label,
 }: FormFieldProps) {
@@ -311,6 +328,9 @@ function FormField({
         {label}
       </label>
       {children}
+      {error ? (
+        <p className="mt-1 text-sm font-medium text-red-600">{error}</p>
+      ) : null}
     </div>
   );
 }

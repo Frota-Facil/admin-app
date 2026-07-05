@@ -1,5 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { useActionState, useState } from "react";
+import type { VehicleFormState } from "@/app/vehicles/actions";
 import {
   VEHICLE_STATUSES,
   type VehicleStatus,
@@ -9,9 +13,13 @@ import {
   type VehicleType,
 } from "@/server/contracts/vehicles/type";
 import type { VehicleResponseDTO } from "@/server/contracts/vehicles/vehicle-response";
+import { normalizePlate } from "@/utils/masks";
 
 type VehicleFormProps = {
-  action: (formData: FormData) => void | Promise<void>;
+  action: (
+    state: VehicleFormState,
+    formData: FormData,
+  ) => VehicleFormState | Promise<VehicleFormState>;
   cancelHref?: string;
   submitLabel?: string;
   vehicle?: VehicleResponseDTO;
@@ -40,10 +48,15 @@ export function VehicleForm({
   submitLabel = "Salvar",
   vehicle,
 }: VehicleFormProps) {
+  const [state, formAction, isPending] = useActionState(action, {});
+  const [plate, setPlate] = useState(normalizePlate(vehicle?.plate ?? ""));
+  const fieldErrors = state.fieldErrors ?? {};
+
   return (
     <form
-      action={action}
+      action={formAction}
       className="w-full max-w-none overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
+      noValidate
     >
       <div className="border-b border-slate-200 px-6 py-5">
         <h2 className="text-base font-bold tracking-normal text-slate-950">
@@ -54,30 +67,36 @@ export function VehicleForm({
         </p>
       </div>
 
+      {state.error ? (
+        <div className="mx-6 mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+          {state.error}
+        </div>
+      ) : null}
+
       <div className="grid gap-5 p-6 md:grid-cols-2 xl:grid-cols-3">
-        <FormField htmlFor="plate" label="Placa">
+        <FormField error={fieldErrors.plate} htmlFor="plate" label="Placa">
           <input
             className={fieldControlClassName}
-            defaultValue={vehicle?.plate}
             id="plate"
+            maxLength={12}
             name="plate"
+            onChange={(event) => setPlate(normalizePlate(event.target.value))}
             placeholder="ABC1D23"
-            required
+            value={plate}
           />
         </FormField>
 
-        <FormField htmlFor="model" label="Modelo">
+        <FormField error={fieldErrors.model} htmlFor="model" label="Modelo">
           <input
             className={fieldControlClassName}
             defaultValue={vehicle?.model}
             id="model"
             name="model"
             placeholder="Ex.: Fiat Toro"
-            required
           />
         </FormField>
 
-        <FormField htmlFor="year" label="Ano">
+        <FormField error={fieldErrors.year} htmlFor="year" label="Ano">
           <input
             className={fieldControlClassName}
             defaultValue={vehicle?.year}
@@ -85,25 +104,27 @@ export function VehicleForm({
             max={new Date().getFullYear() + 1}
             min="1900"
             name="year"
-            required
             type="number"
           />
         </FormField>
 
-        <FormField htmlFor="odometer" label="Quilometragem">
+        <FormField
+          error={fieldErrors.odometer}
+          htmlFor="odometer"
+          label="Quilometragem"
+        >
           <input
             className={fieldControlClassName}
             defaultValue={vehicle?.odometer ?? 0}
             id="odometer"
             min="0"
             name="odometer"
-            required
             step="1"
             type="number"
           />
         </FormField>
 
-        <FormField htmlFor="status" label="Status">
+        <FormField error={fieldErrors.status} htmlFor="status" label="Status">
           <select
             className={fieldControlClassName}
             defaultValue={vehicle?.status ?? "AVAILABLE"}
@@ -118,7 +139,7 @@ export function VehicleForm({
           </select>
         </FormField>
 
-        <FormField htmlFor="type" label="Tipo">
+        <FormField error={fieldErrors.type} htmlFor="type" label="Tipo">
           <select
             className={fieldControlClassName}
             defaultValue={vehicle?.type ?? "CAR"}
@@ -190,9 +211,10 @@ export function VehicleForm({
         </Link>
         <button
           className="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+          disabled={isPending}
           type="submit"
         >
-          {submitLabel}
+          {isPending ? "Salvando..." : submitLabel}
         </button>
       </div>
     </form>
@@ -202,6 +224,7 @@ export function VehicleForm({
 type FormFieldProps = {
   children: ReactNode;
   className?: string;
+  error?: string;
   htmlFor: string;
   label: string;
 };
@@ -209,6 +232,7 @@ type FormFieldProps = {
 function FormField({
   children,
   className = "",
+  error,
   htmlFor,
   label,
 }: FormFieldProps) {
@@ -221,6 +245,9 @@ function FormField({
         {label}
       </label>
       {children}
+      {error ? (
+        <p className="mt-1 text-sm font-medium text-red-600">{error}</p>
+      ) : null}
     </div>
   );
 }

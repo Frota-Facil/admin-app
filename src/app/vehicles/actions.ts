@@ -7,6 +7,14 @@ import { createUploadPresignedUrl } from "@/server/services/core/create-upload-p
 import { deleteVehicleUseCase } from "@/server/use-cases/delete-vehicle-use-case";
 import { registerVehicleUseCase } from "@/server/use-cases/register-vehicle-use-case";
 import { updateVehicleUseCase } from "@/server/use-cases/update-vehicle-use-case";
+import { normalizePlate } from "@/utils/masks";
+
+type VehicleField = "plate" | "model" | "year" | "odometer" | "status" | "type";
+
+export type VehicleFormState = {
+  error?: string;
+  fieldErrors?: Partial<Record<VehicleField, string>>;
+};
 
 function requiredValue(formData: FormData, field: string) {
   return String(formData.get(field) ?? "");
@@ -72,9 +80,11 @@ async function vehicleImageUrl(formData: FormData) {
 }
 
 async function vehicleInput(formData: FormData): Promise<VehicleRequestDTO> {
+  const plate = normalizePlate(requiredValue(formData, "plate"));
+
   return {
-    plate: requiredValue(formData, "plate"),
-    model: requiredValue(formData, "model"),
+    plate,
+    model: requiredValue(formData, "model").trim(),
     year: Number(requiredValue(formData, "year")),
     odometer: Number(requiredValue(formData, "odometer")),
     imageUrl: await vehicleImageUrl(formData),
@@ -83,14 +93,90 @@ async function vehicleInput(formData: FormData): Promise<VehicleRequestDTO> {
   };
 }
 
-export async function registerVehicleAction(formData: FormData) {
-  await registerVehicleUseCase(await vehicleInput(formData));
+function validateVehicleForm(formData: FormData): VehicleFormState {
+  const fieldErrors: VehicleFormState["fieldErrors"] = {};
+  const plate = normalizePlate(requiredValue(formData, "plate"));
+  const model = requiredValue(formData, "model").trim();
+  const year = requiredValue(formData, "year").trim();
+  const odometer = requiredValue(formData, "odometer").trim();
+  const status = requiredValue(formData, "status").trim();
+  const type = requiredValue(formData, "type").trim();
+
+  if (!plate) {
+    fieldErrors.plate = "Placa obrigatória.";
+  }
+
+  if (!model) {
+    fieldErrors.model = "Modelo obrigatório.";
+  }
+
+  if (!year) {
+    fieldErrors.year = "Ano obrigatório.";
+  } else if (!Number.isInteger(Number(year))) {
+    fieldErrors.year = "Ano inválido.";
+  }
+
+  if (!odometer) {
+    fieldErrors.odometer = "Quilometragem obrigatória.";
+  } else if (!Number.isFinite(Number(odometer)) || Number(odometer) < 0) {
+    fieldErrors.odometer = "Quilometragem inválida.";
+  }
+
+  if (!status) {
+    fieldErrors.status = "Status obrigatório.";
+  }
+
+  if (!type) {
+    fieldErrors.type = "Tipo obrigatório.";
+  }
+
+  if (Object.keys(fieldErrors).length > 0) {
+    return {
+      error: "Verifique os campos informados.",
+      fieldErrors,
+    };
+  }
+
+  return {};
+}
+
+export async function registerVehicleAction(
+  _state: VehicleFormState,
+  formData: FormData,
+): Promise<VehicleFormState> {
+  const validation = validateVehicleForm(formData);
+
+  if (validation.fieldErrors) {
+    return validation;
+  }
+
+  try {
+    await registerVehicleUseCase(await vehicleInput(formData));
+  } catch (error) {
+    return vehicleFormErrorState(error);
+  }
+
   revalidatePath("/vehicles");
   redirect("/vehicles");
 }
 
-export async function updateVehicleAction(id: string, formData: FormData) {
-  await updateVehicleUseCase(id, await vehicleInput(formData));
+export async function updateVehicleAction(
+  id: string,
+  _state: VehicleFormState,
+  formData: FormData,
+): Promise<VehicleFormState> {
+  const validation = validateVehicleForm(formData);
+
+  if (validation.fieldErrors) {
+    return validation;
+  }
+
+  try {
+    await updateVehicleUseCase(id, await vehicleInput(formData));
+  } catch (error) {
+    return vehicleFormErrorState(error);
+  }
+
   revalidatePath("/vehicles");
   redirect("/vehicles");
 }
@@ -98,4 +184,60 @@ export async function updateVehicleAction(id: string, formData: FormData) {
 export async function deleteVehicleAction(id: string) {
   await deleteVehicleUseCase(id);
   revalidatePath("/vehicles");
+}
+
+function vehicleFormErrorState(error: unknown): VehicleFormState {
+  const message = getErrorMessage(error);
+  const normalizedMessage = normalizeErrorMessage(message);
+
+  if (
+    normalizedMessage.includes("placa") ||
+    normalizedMessage.includes("plate")
+  ) {
+    return {
+      error: "Verifique os campos informados.",
+      fieldErrors: {
+        plate: "Placa já cadastrada.",
+      },
+    };
+  }
+
+  return {
+    error: message || "Não foi possível salvar o veículo. Tente novamente.",
+  };
+}
+
+function getErrorMessage(error: unknown) {
+  if (!error || typeof error !== "object") {
+    return "Não foi possível salvar o veículo. Tente novamente.";
+  }
+
+  if ("response" in error) {
+    const response = error.response;
+
+    if (response && typeof response === "object" && "data" in response) {
+      const data = response.data;
+
+      if (data && typeof data === "object" && "message" in data) {
+        const message = data.message;
+
+        if (typeof message === "string") {
+          return message;
+        }
+      }
+    }
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "Não foi possível salvar o veículo. Tente novamente.";
+}
+
+function normalizeErrorMessage(message: string) {
+  return message
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("pt-BR");
 }
