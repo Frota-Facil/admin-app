@@ -131,19 +131,7 @@ function UserCard({ onViewDetails, user }: UserCardProps) {
     <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-start gap-3">
-          <div
-            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
-              isAdmin
-                ? "bg-blue-50 text-blue-600"
-                : "bg-emerald-50 text-emerald-600"
-            }`}
-          >
-            {isAdmin ? (
-              <ShieldIcon className="h-5 w-5" />
-            ) : (
-              <UserIcon className="h-5 w-5" />
-            )}
-          </div>
+          <UserAvatar isAdmin={isAdmin} user={user} />
 
           <div className="min-w-0">
             <h2 className="truncate text-base font-bold tracking-normal text-slate-950">
@@ -192,6 +180,40 @@ function UserCard({ onViewDetails, user }: UserCardProps) {
         </form>
       </div>
     </article>
+  );
+}
+
+type UserAvatarProps = {
+  isAdmin: boolean;
+  user: UserResponseDTO;
+};
+
+function UserAvatar({ isAdmin, user }: UserAvatarProps) {
+  if (user.photoUrl) {
+    return (
+      <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full ring-1 ring-slate-200">
+        {/* biome-ignore lint/performance/noImgElement: remote user photo URLs are managed by the core service. */}
+        <img
+          alt={`Foto de ${user.name}`}
+          className="h-full w-full object-cover"
+          src={user.photoUrl}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+        isAdmin ? "bg-blue-50 text-blue-600" : "bg-emerald-50 text-emerald-600"
+      }`}
+    >
+      {isAdmin ? (
+        <ShieldIcon className="h-5 w-5" />
+      ) : (
+        <UserIcon className="h-5 w-5" />
+      )}
+    </div>
   );
 }
 
