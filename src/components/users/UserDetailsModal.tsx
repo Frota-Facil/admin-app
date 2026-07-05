@@ -25,9 +25,7 @@ export function UserDetailsModal({ onClose, user }: UserDetailsModalProps) {
     <DetailsModal onClose={onClose} title="Detalhes do usuário">
       <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
         <div className="rounded-lg border border-slate-200 bg-slate-50 px-5 py-6 text-center">
-          <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 text-2xl font-bold text-blue-700 ring-1 ring-inset ring-blue-100">
-            {initialsFor(user.name)}
-          </div>
+          <UserPhoto user={user} />
           <h3 className="mt-4 break-words text-base font-bold tracking-normal text-slate-950">
             {user.name}
           </h3>
@@ -60,6 +58,31 @@ export function UserDetailsModal({ onClose, user }: UserDetailsModalProps) {
         </dl>
       </div>
     </DetailsModal>
+  );
+}
+
+type UserPhotoProps = {
+  user: UserResponseDTO;
+};
+
+function UserPhoto({ user }: UserPhotoProps) {
+  if (user.photoUrl) {
+    return (
+      <div className="mx-auto h-24 w-24 overflow-hidden rounded-full ring-1 ring-slate-200">
+        {/* biome-ignore lint/performance/noImgElement: remote user photo URLs are managed by the core service. */}
+        <img
+          alt={`Foto de ${user.name}`}
+          className="h-full w-full object-cover"
+          src={user.photoUrl}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 text-2xl font-bold text-blue-700 ring-1 ring-inset ring-blue-100">
+      {initialsFor(user.name)}
+    </div>
   );
 }
 

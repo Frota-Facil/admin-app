@@ -8,6 +8,7 @@ export const createUserSchema = z.object({
   cpf: z.string().length(11),
   cnh: z.string().length(11).optional(),
   phone: z.string().min(10).max(14),
+  photoUrl: z.string().nullable().optional(),
   department: z.string().optional(),
   role: userRoleEnum.default("driver"),
 });

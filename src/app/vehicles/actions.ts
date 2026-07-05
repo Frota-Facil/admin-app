@@ -29,22 +29,19 @@ function vehicleImageFile(formData: FormData) {
 }
 
 async function uploadVehicleImage(file: File) {
-  const { uploadUrl, fileUrl, signedUploadHost } =
-    await createUploadPresignedUrl({
-      contentType: file.type,
-    });
+  const { uploadUrl, fileUrl } = await createUploadPresignedUrl({
+    contentType: file.type,
+  });
 
   console.log("Uploading vehicle image to MinIO with presigned URL", {
     uploadUrl,
     fileUrl,
-    signedUploadHost,
   });
 
   const response = await fetch(uploadUrl, {
     method: "PUT",
     headers: {
       "Content-Type": file.type,
-      ...(signedUploadHost ? { Host: signedUploadHost } : {}),
     },
     body: file,
   });
