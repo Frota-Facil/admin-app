@@ -33,7 +33,6 @@ export function RouteEventListener() {
 
     eventSource.onerror = () => {
       console.warn("SSE de rotas indisponível. Usando atualização manual.");
-      eventSource.close();
     };
 
     return () => {

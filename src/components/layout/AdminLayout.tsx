@@ -2,6 +2,7 @@
 
 import { type ReactNode, useState } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { RouteEventListener } from "@/components/routes/RouteEventListener";
 import { ToastProvider } from "@/components/toast/ToastProvider";
 
 type AdminLayoutProps = {
@@ -13,6 +14,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <ToastProvider>
+      <RouteEventListener />
+
       <div className="flex h-screen overflow-hidden bg-slate-100 text-slate-950">
         <Sidebar isOpen={isSidebarOpen} />
 
