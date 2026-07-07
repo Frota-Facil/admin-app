@@ -28,6 +28,8 @@ export type UserFormState = {
   fieldErrors?: Partial<Record<UserField, string>>;
 };
 
+export type DeleteUserResult = { ok: true } | { error: string; ok: false };
+
 function optionalValue(formData: FormData, field: string) {
   const value = formData.get(field);
   return typeof value === "string" && value ? value : undefined;
@@ -225,8 +227,28 @@ export async function updateUserAction(
 }
 
 export async function deleteUserAction(id: string) {
-  await deleteUserUseCase(id);
+  const result = await deleteUserWithResultAction(id);
+
+  if (!result.ok) {
+    throw new Error(result.error);
+  }
+}
+
+export async function deleteUserWithResultAction(
+  id: string,
+): Promise<DeleteUserResult> {
+  try {
+    await deleteUserUseCase(id);
+  } catch (error) {
+    return {
+      error: getDeleteUserErrorMessage(error),
+      ok: false,
+    };
+  }
+
   revalidatePath("/users");
+
+  return { ok: true };
 }
 
 function userFormErrorState(error: unknown): UserFormState {
@@ -310,6 +332,19 @@ function getErrorMessage(error: unknown) {
   }
 
   return "Não foi possível salvar o usuário. Tente novamente.";
+}
+
+function getDeleteUserErrorMessage(error: unknown) {
+  const message = getErrorMessage(error);
+
+  if (
+    message &&
+    message !== "Não foi possível salvar o usuário. Tente novamente."
+  ) {
+    return message;
+  }
+
+  return "Não foi possível excluir o usuário. Tente novamente.";
 }
 
 function normalizeErrorMessage(message: string) {

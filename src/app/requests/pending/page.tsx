@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BackButton } from "@/components/ui/BackButton";
+import { PageBackHeader } from "@/components/ui/PageBackHeader";
 import { fetchPendingRequestsUseCase } from "@/server/use-cases/fetch-pending-requests-use-case";
 
 export default async function PendingRequestsPage() {
@@ -7,10 +7,11 @@ export default async function PendingRequestsPage() {
 
   return (
     <main>
-      <div className="mb-4">
-        <BackButton href="/requests" />
-      </div>
-      <h1>Requisições pendentes</h1>
+      <PageBackHeader
+        backHref="/requests"
+        className="mb-4"
+        title="Requisições pendentes"
+      />
 
       {requests.length === 0 ? (
         <p>Nenhuma requisição pendente encontrada.</p>

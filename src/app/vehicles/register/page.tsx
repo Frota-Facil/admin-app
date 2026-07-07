@@ -1,26 +1,18 @@
 import { registerVehicleAction } from "@/app/vehicles/actions";
 import { VehicleForm } from "@/app/vehicles/register/form";
 import { AdminLayout } from "@/components/layout/AdminLayout";
-import { BackButton } from "@/components/ui/BackButton";
+import { PageBackHeader } from "@/components/ui/PageBackHeader";
 
 export default function RegisterVehiclePage() {
   return (
     <AdminLayout>
       <div className="min-h-screen bg-slate-100">
         <header className="border-b border-slate-200 bg-white px-8 py-5">
-          <div>
-            <div className="mb-4">
-              <BackButton href="/vehicles" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-normal text-slate-950">
-                Novo veículo
-              </h1>
-              <p className="mt-1 text-sm text-slate-500">
-                Cadastre um novo veículo na frota
-              </p>
-            </div>
-          </div>
+          <PageBackHeader
+            backHref="/vehicles"
+            subtitle="Cadastre um novo veículo na frota"
+            title="Novo veículo"
+          />
         </header>
 
         <div className="p-8">

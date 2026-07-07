@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 import { updateVehicleAction } from "@/app/vehicles/actions";
 import { VehicleForm } from "@/app/vehicles/register/form";
-import { BackButton } from "@/components/ui/BackButton";
+import { AdminLayout } from "@/components/layout/AdminLayout";
+import { NotificationBell } from "@/components/layout/NotificationBell";
+import { PageBackHeader } from "@/components/ui/PageBackHeader";
 import { fetchVehicleByIdUseCase } from "@/server/use-cases/fetch-vehicle-by-id-use-case";
 
 type EditVehiclePageProps = {
@@ -19,15 +21,24 @@ export default async function EditVehiclePage({
   }
 
   return (
-    <main>
-      <div className="mb-4">
-        <BackButton href="/vehicles" />
+    <AdminLayout>
+      <div className="min-h-screen bg-slate-100">
+        <header className="border-b border-slate-200 bg-white px-8 py-5">
+          <PageBackHeader
+            actions={<NotificationBell />}
+            backHref="/vehicles"
+            subtitle="Atualize os dados cadastrais e operacionais do veículo"
+            title="Editar veículo"
+          />
+        </header>
+
+        <div className="p-8">
+          <VehicleForm
+            action={updateVehicleAction.bind(null, id)}
+            vehicle={vehicle}
+          />
+        </div>
       </div>
-      <h1>Editar veículo</h1>
-      <VehicleForm
-        action={updateVehicleAction.bind(null, id)}
-        vehicle={vehicle}
-      />
-    </main>
+    </AdminLayout>
   );
 }

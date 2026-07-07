@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BackButton } from "@/components/ui/BackButton";
+import { PageBackHeader } from "@/components/ui/PageBackHeader";
 import { fetchVehicleByIdUseCase } from "@/server/use-cases/fetch-vehicle-by-id-use-case";
 import { fetchVehicleRequestsUseCase } from "@/server/use-cases/fetch-vehicle-requests-use-case";
 
@@ -22,13 +22,12 @@ export default async function VehicleRequestsPage({
 
   return (
     <main>
-      <div className="mb-4">
-        <BackButton href="/vehicles" />
-      </div>
-      <h1>Requisições do veículo</h1>
-      <p>
-        {vehicle.model} - {vehicle.plate}
-      </p>
+      <PageBackHeader
+        backHref="/vehicles"
+        className="mb-4"
+        subtitle={`${vehicle.model} - ${vehicle.plate}`}
+        title="Requisições do veículo"
+      />
 
       {requests.length === 0 ? (
         <p>Nenhuma requisição encontrada.</p>

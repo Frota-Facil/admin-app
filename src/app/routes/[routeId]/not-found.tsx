@@ -1,25 +1,18 @@
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { NotificationBell } from "@/components/layout/NotificationBell";
-import { BackButton } from "@/components/ui/BackButton";
+import { PageBackHeader } from "@/components/ui/PageBackHeader";
 
 export default function RouteDetailNotFound() {
   return (
     <AdminLayout>
       <div className="min-h-screen bg-slate-100">
         <header className="border-b border-slate-200 bg-white px-8 py-5">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <BackButton href="/routes" />
-              <h1 className="mt-4 text-2xl font-bold tracking-normal text-slate-950">
-                Detalhes da rota
-              </h1>
-              <p className="mt-1 text-sm text-slate-500">
-                Informações completas da rota finalizada
-              </p>
-            </div>
-
-            <NotificationBell />
-          </div>
+          <PageBackHeader
+            actions={<NotificationBell />}
+            backHref="/routes"
+            subtitle="Informações completas da rota finalizada"
+            title="Detalhes da rota"
+          />
         </header>
 
         <div className="p-8">

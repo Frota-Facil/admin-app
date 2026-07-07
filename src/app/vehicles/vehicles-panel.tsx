@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { type ReactNode, useMemo, useState } from "react";
-import { deleteVehicleAction } from "@/app/vehicles/actions";
+import { deleteVehicleWithResultAction } from "@/app/vehicles/actions";
 import { NotificationBell } from "@/components/layout/NotificationBell";
+import { useToast } from "@/components/toast/ToastProvider";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { VehicleDetailsModal } from "@/components/vehicles/VehicleDetailsModal";
 import type { VehicleResponseDTO } from "@/server/contracts/vehicles/vehicle-response";
 
@@ -21,6 +24,25 @@ const statusLabels = {
   MAINTENANCE: "Manutenção",
   UNAVAILABLE: "Indisponível",
 } satisfies Record<DisplayStatus, string>;
+
+const statusDisplay = {
+  AVAILABLE: {
+    className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    label: statusLabels.AVAILABLE,
+  },
+  IN_USE: {
+    className: "border-blue-200 bg-blue-50 text-blue-700",
+    label: statusLabels.IN_USE,
+  },
+  MAINTENANCE: {
+    className: "border-amber-200 bg-amber-50 text-amber-700",
+    label: statusLabels.MAINTENANCE,
+  },
+  UNAVAILABLE: {
+    className: "border-red-200 bg-red-50 text-red-700",
+    label: statusLabels.UNAVAILABLE,
+  },
+} satisfies Record<DisplayStatus, { className: string; label: string }>;
 
 const statusFilters = [
   { label: "Todos", value: "ALL" },
@@ -41,8 +63,13 @@ const typeLabels: Record<string, string> = {
 const numberFormatter = new Intl.NumberFormat("pt-BR");
 
 export function VehiclesPanel({ vehicles }: VehiclesPanelProps) {
+  const router = useRouter();
+  const { showToast } = useToast();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
+  const [vehicleToDelete, setVehicleToDelete] =
+    useState<VehicleResponseDTO | null>(null);
+  const [isDeletingVehicle, setIsDeletingVehicle] = useState(false);
   const [selectedVehicle, setSelectedVehicle] =
     useState<VehicleResponseDTO | null>(null);
 
@@ -62,6 +89,41 @@ export function VehiclesPanel({ vehicles }: VehiclesPanelProps) {
       return matchesSearch && matchesStatus;
     });
   }, [search, statusFilter, vehicles]);
+
+  async function handleConfirmDeleteVehicle() {
+    if (!vehicleToDelete || isDeletingVehicle) {
+      return;
+    }
+
+    const vehicle = vehicleToDelete;
+    setIsDeletingVehicle(true);
+
+    try {
+      const result = await deleteVehicleWithResultAction(vehicle.id);
+
+      if (!result.ok) {
+        showToast({
+          description: result.error,
+          title: "Erro ao excluir veículo",
+        });
+        return;
+      }
+
+      setVehicleToDelete(null);
+      showToast({
+        description: `${vehicle.model} - ${vehicle.plate} foi excluído com sucesso.`,
+        title: "Veículo excluído",
+      });
+      router.refresh();
+    } catch {
+      showToast({
+        description: "Não foi possível excluir o veículo. Tente novamente.",
+        title: "Erro ao excluir veículo",
+      });
+    } finally {
+      setIsDeletingVehicle(false);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -111,6 +173,7 @@ export function VehiclesPanel({ vehicles }: VehiclesPanelProps) {
         </div>
 
         <VehicleTable
+          onRequestDelete={setVehicleToDelete}
           onViewDetails={setSelectedVehicle}
           vehicles={filteredVehicles}
         />
@@ -122,6 +185,25 @@ export function VehiclesPanel({ vehicles }: VehiclesPanelProps) {
           vehicle={selectedVehicle}
         />
       ) : null}
+
+      <ConfirmDialog
+        confirmLabel="Excluir veículo"
+        description={
+          vehicleToDelete
+            ? `Tem certeza que deseja excluir o veículo ${vehicleToDelete.model} - ${vehicleToDelete.plate}? Esta ação não poderá ser desfeita.`
+            : ""
+        }
+        destructive
+        loading={isDeletingVehicle}
+        onConfirm={handleConfirmDeleteVehicle}
+        onOpenChange={(open) => {
+          if (!open) {
+            setVehicleToDelete(null);
+          }
+        }}
+        open={Boolean(vehicleToDelete)}
+        title="Excluir veículo?"
+      />
     </div>
   );
 }
@@ -160,21 +242,27 @@ function VehicleFilters({
 }
 
 type VehicleTableProps = {
+  onRequestDelete: (vehicle: VehicleResponseDTO) => void;
   onViewDetails: (vehicle: VehicleResponseDTO) => void;
   vehicles: VehicleResponseDTO[];
 };
 
-function VehicleTable({ onViewDetails, vehicles }: VehicleTableProps) {
+function VehicleTable({
+  onRequestDelete,
+  onViewDetails,
+  vehicles,
+}: VehicleTableProps) {
   return (
     <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] border-collapse text-left">
+        <table className="w-full min-w-[860px] border-collapse text-left">
           <thead className="bg-slate-50">
             <tr className="border-b border-slate-200">
               <TableHead>Placa</TableHead>
               <TableHead>Modelo</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>KM</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </tr>
           </thead>
@@ -183,7 +271,7 @@ function VehicleTable({ onViewDetails, vehicles }: VehicleTableProps) {
               <tr>
                 <td
                   className="px-4 py-10 text-center text-sm font-medium text-slate-500"
-                  colSpan={5}
+                  colSpan={6}
                 >
                   Nenhum veículo encontrado.
                 </td>
@@ -212,6 +300,9 @@ function VehicleTable({ onViewDetails, vehicles }: VehicleTableProps) {
                     {numberFormatter.format(vehicle.odometer)} km
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
+                    <VehicleStatusBadge status={vehicle.status} />
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-4">
                     <div className="flex items-center justify-end gap-2">
                       <button
                         aria-label={`Ver detalhes do veículo ${vehicle.plate}`}
@@ -228,14 +319,13 @@ function VehicleTable({ onViewDetails, vehicles }: VehicleTableProps) {
                       >
                         Editar
                       </Link>
-                      <form action={deleteVehicleAction.bind(null, vehicle.id)}>
-                        <button
-                          className="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold text-red-700 transition hover:bg-red-50 focus:outline-none focus:ring-4 focus:ring-red-100"
-                          type="submit"
-                        >
-                          Excluir
-                        </button>
-                      </form>
+                      <button
+                        className="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold text-red-700 transition hover:bg-red-50 focus:outline-none focus:ring-4 focus:ring-red-100"
+                        onClick={() => onRequestDelete(vehicle)}
+                        type="button"
+                      >
+                        Excluir
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -245,6 +335,29 @@ function VehicleTable({ onViewDetails, vehicles }: VehicleTableProps) {
         </table>
       </div>
     </section>
+  );
+}
+
+type VehicleStatusBadgeProps = {
+  status: string;
+};
+
+function VehicleStatusBadge({ status }: VehicleStatusBadgeProps) {
+  const normalizedStatus = normalizeStatus(status);
+  const display = normalizedStatus
+    ? statusDisplay[normalizedStatus]
+    : {
+        className: "border-slate-200 bg-slate-100 text-slate-600",
+        label: status.trim() || "Desconhecido",
+      };
+
+  return (
+    <span
+      className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${display.className}`}
+      title={status}
+    >
+      {display.label}
+    </span>
   );
 }
 
@@ -263,7 +376,7 @@ function TableHead({ children, className = "" }: TableHeadProps) {
   );
 }
 
-function normalizeStatus(status: string): DisplayStatus {
+function normalizeStatus(status: string): DisplayStatus | null {
   const normalized = status.trim().toUpperCase();
 
   if (normalized === "AVAILABLE") {
@@ -278,7 +391,11 @@ function normalizeStatus(status: string): DisplayStatus {
     return "MAINTENANCE";
   }
 
-  return "UNAVAILABLE";
+  if (normalized === "UNAVAILABLE") {
+    return "UNAVAILABLE";
+  }
+
+  return null;
 }
 
 type IconProps = {

@@ -1,6 +1,8 @@
 import { updateUserAction } from "@/app/users/actions";
 import { UserForm } from "@/app/users/user-form";
-import { BackButton } from "@/components/ui/BackButton";
+import { AdminLayout } from "@/components/layout/AdminLayout";
+import { NotificationBell } from "@/components/layout/NotificationBell";
+import { PageBackHeader } from "@/components/ui/PageBackHeader";
 import { fetchUserByIdUseCase } from "@/server/use-cases/fetch-user-by-id-use-case";
 
 type EditUserPageProps = {
@@ -13,12 +15,21 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
   const updateUser = updateUserAction.bind(null, id);
 
   return (
-    <main>
-      <div className="mb-4">
-        <BackButton href="/users" />
+    <AdminLayout>
+      <div className="min-h-screen bg-slate-100">
+        <header className="border-b border-slate-200 bg-white px-8 py-5">
+          <PageBackHeader
+            actions={<NotificationBell />}
+            backHref="/users"
+            subtitle="Atualize os dados de acesso e identificação do usuário"
+            title="Editar usuário"
+          />
+        </header>
+
+        <div className="p-8">
+          <UserForm action={updateUser} user={user} />
+        </div>
       </div>
-      <h1>Editar usuário</h1>
-      <UserForm action={updateUser} user={user} />
-    </main>
+    </AdminLayout>
   );
 }

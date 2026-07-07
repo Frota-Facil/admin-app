@@ -11,9 +11,10 @@ export type RouteListItem = {
   department: string;
   destination: string;
   driverName: string;
-  duration: string;
+  duration: string | null;
   id: string;
   reason: string;
+  status: string;
   vehicleModel: string;
   vehiclePlate: string;
 };
@@ -28,6 +29,56 @@ const routeDateFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeZone: "America/Fortaleza",
   year: "numeric",
 });
+
+type RouteDisplayStatus =
+  | "APPROVED"
+  | "CANCELED"
+  | "CANCELLED"
+  | "COMPLETED"
+  | "FINISHED"
+  | "PENDING"
+  | "READY"
+  | "REJECTED"
+  | "STARTED";
+
+const routeStatusDisplay = {
+  APPROVED: {
+    className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    label: "Aprovada",
+  },
+  CANCELED: {
+    className: "border-red-200 bg-red-50 text-red-700",
+    label: "Cancelada",
+  },
+  CANCELLED: {
+    className: "border-red-200 bg-red-50 text-red-700",
+    label: "Cancelada",
+  },
+  COMPLETED: {
+    className: "border-blue-200 bg-blue-50 text-blue-700",
+    label: "Concluída",
+  },
+  FINISHED: {
+    className: "border-blue-200 bg-blue-50 text-blue-700",
+    label: "Finalizada",
+  },
+  PENDING: {
+    className: "border-amber-200 bg-amber-50 text-amber-700",
+    label: "Pendente",
+  },
+  READY: {
+    className: "border-indigo-200 bg-indigo-50 text-indigo-700",
+    label: "Pronta",
+  },
+  REJECTED: {
+    className: "border-red-200 bg-red-50 text-red-700",
+    label: "Recusada",
+  },
+  STARTED: {
+    className: "border-cyan-200 bg-cyan-50 text-cyan-700",
+    label: "Em andamento",
+  },
+} satisfies Record<RouteDisplayStatus, { className: string; label: string }>;
 
 export function RoutesPanel({ routes }: RoutesPanelProps) {
   const [search, setSearch] = useState("");
@@ -46,9 +97,10 @@ export function RoutesPanel({ routes }: RoutesPanelProps) {
         route.vehiclePlate,
         route.driverName,
         route.department,
-        route.duration,
+        route.duration ?? "",
         route.destination,
         route.reason,
+        routeStatusLabelFor(route.status),
       ];
 
       return searchableFields.some((field) =>
@@ -113,6 +165,7 @@ function RoutesTable({ routes }: RoutesTableProps) {
               <TableHead>Duração</TableHead>
               <TableHead>Destino</TableHead>
               <TableHead>Finalidade</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Detalhes</TableHead>
             </tr>
           </thead>
@@ -121,7 +174,7 @@ function RoutesTable({ routes }: RoutesTableProps) {
               <tr>
                 <td
                   className="px-4 py-10 text-center text-sm font-medium text-slate-500"
-                  colSpan={8}
+                  colSpan={9}
                 >
                   Nenhuma rota finalizada encontrada.
                 </td>
@@ -147,13 +200,16 @@ function RoutesTable({ routes }: RoutesTableProps) {
                     {route.department}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
-                    {route.duration}
+                    {route.duration ?? "—"}
                   </td>
                   <td className="px-4 py-4 text-sm text-slate-600">
                     {route.destination}
                   </td>
                   <td className="px-4 py-4 text-sm text-slate-600">
                     {route.reason}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-4">
+                    <RouteStatusBadge status={route.status} />
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
                     <Link
@@ -172,6 +228,29 @@ function RoutesTable({ routes }: RoutesTableProps) {
         </table>
       </div>
     </section>
+  );
+}
+
+type RouteStatusBadgeProps = {
+  status: string;
+};
+
+function RouteStatusBadge({ status }: RouteStatusBadgeProps) {
+  const normalizedStatus = normalizeStatus(status);
+  const display = normalizedStatus
+    ? routeStatusDisplay[normalizedStatus]
+    : {
+        className: "border-slate-200 bg-slate-100 text-slate-600",
+        label: status.trim() || "Desconhecido",
+      };
+
+  return (
+    <span
+      className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${display.className}`}
+      title={status}
+    >
+      {display.label}
+    </span>
   );
 }
 
@@ -203,6 +282,26 @@ function normalizeText(value: string) {
     .replace(/[\u0300-\u036f]/g, "")
     .trim()
     .toLocaleLowerCase("pt-BR");
+}
+
+function normalizeStatus(status: string): RouteDisplayStatus | null {
+  const normalized = status.trim().toUpperCase();
+
+  if (normalized in routeStatusDisplay) {
+    return normalized as RouteDisplayStatus;
+  }
+
+  return null;
+}
+
+function routeStatusLabelFor(status: string) {
+  const normalizedStatus = normalizeStatus(status);
+
+  if (normalizedStatus) {
+    return routeStatusDisplay[normalizedStatus].label;
+  }
+
+  return status;
 }
 
 type IconProps = {

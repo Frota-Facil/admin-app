@@ -224,41 +224,52 @@ export function UserForm({
           htmlFor="photo"
           label="Foto do motorista"
         >
-          <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-5 transition focus-within:border-blue-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-100">
-            <input
-              accept="image/jpeg,image/png,image/webp"
-              className="block w-full text-sm text-slate-600 file:mr-4 file:h-9 file:rounded-lg file:border-0 file:bg-blue-50 file:px-4 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100"
-              id="photo"
-              name="photo"
-              onChange={handlePhotoChange}
-              type="file"
-            />
-            <p className="mt-2 text-xs text-slate-500">
-              {photoFileName || "Nenhum arquivo escolhido"}
-            </p>
-            {photoError ? (
-              <p className="mt-1 text-xs font-semibold text-red-600">
-                {photoError}
+          <div className="flex flex-col gap-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-4 transition focus-within:border-blue-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-100 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0 flex-1 ">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center h-">
+                <input
+                  accept="image/jpeg,image/png,image/webp"
+                  className="sr-only"
+                  id="photo"
+                  name="photo"
+                  onChange={handlePhotoChange}
+                  type="file"
+                />
+                <label
+                  className="inline-flex h-9 cursor-pointer items-center justify-center rounded-lg bg-blue-50 px-4 text-sm font-semibold text-blue-700 transition hover:bg-blue-100 focus-within:outline-none focus-within:ring-4 focus-within:ring-blue-100"
+                  htmlFor="photo"
+                >
+                  Escolher arquivo
+                </label>
+                <span className="min-w-0 truncate text-sm text-slate-600">
+                  {photoFileName || "Nenhum arquivo escolhido"}
+                </span>
+              </div>
+
+              {photoError ? (
+                <p className="mt-2 text-xs font-semibold text-red-600">
+                  {photoError}
+                </p>
+              ) : null}
+              <p className="mt-2 text-xs text-slate-500">
+                Formatos aceitos: JPG, PNG ou WebP.
               </p>
-            ) : null}
-            <p className="mt-1 text-xs text-slate-500">
-              Formatos aceitos: JPG, PNG ou WebP.
-            </p>
+            </div>
 
             {previewUrl ? (
-              <figure className="mt-4 flex flex-wrap items-center gap-4">
+              <figure className="flex shrink-0 items-center gap-3 ">
                 {/* biome-ignore lint/performance/noImgElement: preview uses local object URLs and remote MinIO URLs. */}
                 <img
                   alt="Prévia da foto do motorista"
                   className="h-24 w-24 rounded-full object-cover ring-1 ring-slate-200"
                   src={previewUrl}
                 />
-                <figcaption className="text-sm font-semibold text-slate-700">
+                <figcaption className="sr-only">
                   {photoPreviewUrl ? "Prévia da foto" : "Foto atual"}
                 </figcaption>
               </figure>
             ) : (
-              <div className="mt-4 flex h-24 w-24 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-500 ring-1 ring-inset ring-slate-200">
+              <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-500 ring-1 ring-inset ring-slate-200">
                 Sem foto
               </div>
             )}

@@ -1,7 +1,8 @@
 "use client";
 
+import { Funnel } from "lucide-react";
 import Link from "next/link";
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import {
   approveRequestAction,
   rejectRequestAction,
@@ -29,6 +30,7 @@ type RequestsPanelProps = {
 };
 
 type FilterStatus = "ALL" | "PENDING" | "APPROVED" | "REJECTED";
+type SearchField = "destination" | "name" | "plate";
 
 const filterOptions = [
   { label: "Todas", value: "ALL" },
@@ -63,9 +65,18 @@ const statusPriority = {
   COMPLETED: 3,
 } satisfies Record<string, number>;
 
+const searchFieldOptions = [
+  { label: "Nome", value: "name" },
+  { label: "Placa", value: "plate" },
+  { label: "Destino", value: "destination" },
+] satisfies { label: string; value: SearchField }[];
+
 export function RequestsPanel({ requests }: RequestsPanelProps) {
   const [search, setSearch] = useState("");
   const [currentFilter, setCurrentFilter] = useState<FilterStatus>("ALL");
+  const [selectedSearchFields, setSelectedSearchFields] = useState<
+    SearchField[]
+  >([]);
 
   const counts = useMemo(() => {
     return requests.reduce(
@@ -107,21 +118,27 @@ export function RequestsPanel({ requests }: RequestsPanelProps) {
           return true;
         }
 
-        const searchableFields = [
-          request.userName,
-          request.department,
-          request.vehicleModel,
-          request.vehiclePlate,
-          request.destination,
-          request.reason,
-        ];
+        const searchableFields = getSearchableFields(
+          request,
+          selectedSearchFields,
+        );
 
         return searchableFields.some((field) =>
           normalizeText(field).includes(normalizedSearch),
         );
       })
       .sort(compareRequests);
-  }, [currentFilter, requests, search]);
+  }, [currentFilter, requests, search, selectedSearchFields]);
+
+  function handleSearchFieldToggle(field: SearchField) {
+    setSelectedSearchFields((currentFields) => {
+      if (currentFields.includes(field)) {
+        return currentFields.filter((currentField) => currentField !== field);
+      }
+
+      return [...currentFields, field];
+    });
+  }
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -149,6 +166,12 @@ export function RequestsPanel({ requests }: RequestsPanelProps) {
               />
             </label>
 
+            <SearchFieldFilter
+              onClear={() => setSelectedSearchFields([])}
+              onToggleField={handleSearchFieldToggle}
+              selectedFields={selectedSearchFields}
+            />
+
             <NotificationBell />
           </div>
         </div>
@@ -175,6 +198,109 @@ export function RequestsPanel({ requests }: RequestsPanelProps) {
           </section>
         )}
       </div>
+    </div>
+  );
+}
+
+type SearchFieldFilterProps = {
+  onClear: () => void;
+  onToggleField: (field: SearchField) => void;
+  selectedFields: SearchField[];
+};
+
+function SearchFieldFilter({
+  onClear,
+  onToggleField,
+  selectedFields,
+}: SearchFieldFilterProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const activeFilterCount = selectedFields.length;
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target;
+
+      if (target instanceof Node && !wrapperRef.current?.contains(target)) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+    };
+  }, [isOpen]);
+
+  return (
+    <div className="relative shrink-0" ref={wrapperRef}>
+      <button
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
+        aria-label="Filtrar campos da busca"
+        className={`relative inline-flex h-10 w-10 items-center justify-center rounded-lg border bg-white shadow-sm transition focus:outline-none focus:ring-4 focus:ring-blue-100 ${
+          activeFilterCount > 0
+            ? "border-blue-200 text-blue-700 hover:border-blue-300"
+            : "border-slate-200 text-slate-500 hover:border-blue-200 hover:text-blue-700"
+        }`}
+        onClick={() => setIsOpen((current) => !current)}
+        title="Filtrar busca"
+        type="button"
+      >
+        <Funnel aria-hidden="true" className="h-5 w-5" />
+        {activeFilterCount > 0 ? (
+          <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-600 px-1 text-[11px] font-bold leading-none text-white ring-2 ring-white">
+            {activeFilterCount}
+          </span>
+        ) : null}
+      </button>
+
+      {isOpen ? (
+        <div
+          className="absolute right-0 top-full z-40 mt-2 w-56 rounded-lg border border-slate-200 bg-white p-3 shadow-lg"
+          role="menu"
+        >
+          <p className="px-2 pb-2 text-xs font-bold uppercase tracking-normal text-slate-500">
+            Filtrar busca por
+          </p>
+
+          <div className="space-y-1">
+            {searchFieldOptions.map((option) => {
+              const isChecked = selectedFields.includes(option.value);
+
+              return (
+                <label
+                  className="flex h-9 cursor-pointer items-center gap-3 rounded-lg px-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                  key={option.value}
+                >
+                  <input
+                    checked={isChecked}
+                    className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-100"
+                    onChange={() => onToggleField(option.value)}
+                    type="checkbox"
+                  />
+                  <span>{option.label}</span>
+                </label>
+              );
+            })}
+          </div>
+
+          {activeFilterCount > 0 ? (
+            <button
+              className="mt-3 h-8 w-full rounded-lg text-sm font-semibold text-blue-700 transition hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-100"
+              onClick={onClear}
+              type="button"
+            >
+              Limpar filtros
+            </button>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -349,6 +475,34 @@ function normalizeStatus(status: string) {
   }
 
   return "COMPLETED";
+}
+
+function getSearchableFields(
+  request: RequestListItem,
+  selectedFields: SearchField[],
+) {
+  if (selectedFields.length === 0) {
+    return [
+      request.userName,
+      request.department,
+      request.vehicleModel,
+      request.vehiclePlate,
+      request.destination,
+      request.reason,
+    ];
+  }
+
+  return selectedFields.map((field) => {
+    if (field === "name") {
+      return request.userName;
+    }
+
+    if (field === "plate") {
+      return request.vehiclePlate;
+    }
+
+    return request.destination;
+  });
 }
 
 function compareRequests(a: RequestListItem, b: RequestListItem) {

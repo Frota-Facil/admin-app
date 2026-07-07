@@ -16,6 +16,8 @@ export type VehicleFormState = {
   fieldErrors?: Partial<Record<VehicleField, string>>;
 };
 
+export type DeleteVehicleResult = { ok: true } | { error: string; ok: false };
+
 function requiredValue(formData: FormData, field: string) {
   return String(formData.get(field) ?? "");
 }
@@ -182,8 +184,28 @@ export async function updateVehicleAction(
 }
 
 export async function deleteVehicleAction(id: string) {
-  await deleteVehicleUseCase(id);
+  const result = await deleteVehicleWithResultAction(id);
+
+  if (!result.ok) {
+    throw new Error(result.error);
+  }
+}
+
+export async function deleteVehicleWithResultAction(
+  id: string,
+): Promise<DeleteVehicleResult> {
+  try {
+    await deleteVehicleUseCase(id);
+  } catch (error) {
+    return {
+      error: getDeleteVehicleErrorMessage(error),
+      ok: false,
+    };
+  }
+
   revalidatePath("/vehicles");
+
+  return { ok: true };
 }
 
 function vehicleFormErrorState(error: unknown): VehicleFormState {
@@ -233,6 +255,19 @@ function getErrorMessage(error: unknown) {
   }
 
   return "Não foi possível salvar o veículo. Tente novamente.";
+}
+
+function getDeleteVehicleErrorMessage(error: unknown) {
+  const message = getErrorMessage(error);
+
+  if (
+    message &&
+    message !== "Não foi possível salvar o veículo. Tente novamente."
+  ) {
+    return message;
+  }
+
+  return "Não foi possível excluir o veículo. Tente novamente.";
 }
 
 function normalizeErrorMessage(message: string) {

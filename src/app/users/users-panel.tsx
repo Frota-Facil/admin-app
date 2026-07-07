@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { deleteUserAction } from "@/app/users/actions";
+import { deleteUserWithResultAction } from "@/app/users/actions";
 import { NotificationBell } from "@/components/layout/NotificationBell";
+import { useToast } from "@/components/toast/ToastProvider";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { UserDetailsModal } from "@/components/users/UserDetailsModal";
 import type { UserResponseDTO } from "@/server/contracts/users/user-schema";
 
@@ -21,7 +24,13 @@ const roleLabels: Record<string, string> = {
 };
 
 export function UsersPanel({ users }: UsersPanelProps) {
+  const router = useRouter();
+  const { showToast } = useToast();
   const [search, setSearch] = useState("");
+  const [isDeletingUser, setIsDeletingUser] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<UserResponseDTO | null>(
+    null,
+  );
   const [selectedUser, setSelectedUser] = useState<UserResponseDTO | null>(
     null,
   );
@@ -41,6 +50,41 @@ export function UsersPanel({ users }: UsersPanelProps) {
       );
     });
   }, [search, users]);
+
+  async function handleConfirmDeleteUser() {
+    if (!userToDelete || isDeletingUser) {
+      return;
+    }
+
+    const user = userToDelete;
+    setIsDeletingUser(true);
+
+    try {
+      const result = await deleteUserWithResultAction(user.id);
+
+      if (!result.ok) {
+        showToast({
+          description: result.error,
+          title: "Erro ao excluir usuário",
+        });
+        return;
+      }
+
+      setUserToDelete(null);
+      showToast({
+        description: `${user.name} foi excluído com sucesso.`,
+        title: "Usuário excluído",
+      });
+      router.refresh();
+    } catch {
+      showToast({
+        description: "Não foi possível excluir o usuário. Tente novamente.",
+        title: "Erro ao excluir usuário",
+      });
+    } finally {
+      setIsDeletingUser(false);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -100,6 +144,7 @@ export function UsersPanel({ users }: UsersPanelProps) {
             {filteredUsers.map((user) => (
               <UserCard
                 key={user.id}
+                onRequestDelete={setUserToDelete}
                 onViewDetails={setSelectedUser}
                 user={user}
               />
@@ -114,16 +159,36 @@ export function UsersPanel({ users }: UsersPanelProps) {
           user={selectedUser}
         />
       ) : null}
+
+      <ConfirmDialog
+        confirmLabel="Excluir usuário"
+        description={
+          userToDelete
+            ? `Tem certeza que deseja excluir o usuário ${userToDelete.name}? Esta ação não poderá ser desfeita.`
+            : ""
+        }
+        destructive
+        loading={isDeletingUser}
+        onConfirm={handleConfirmDeleteUser}
+        onOpenChange={(open) => {
+          if (!open) {
+            setUserToDelete(null);
+          }
+        }}
+        open={Boolean(userToDelete)}
+        title="Excluir usuário?"
+      />
     </div>
   );
 }
 
 type UserCardProps = {
+  onRequestDelete: (user: UserResponseDTO) => void;
   onViewDetails: (user: UserResponseDTO) => void;
   user: UserResponseDTO;
 };
 
-function UserCard({ onViewDetails, user }: UserCardProps) {
+function UserCard({ onRequestDelete, onViewDetails, user }: UserCardProps) {
   const roleLabel = roleLabelFor(user.role);
   const isAdmin = roleLabel === "Administrador" || roleLabel === "Gestor";
 
@@ -169,15 +234,14 @@ function UserCard({ onViewDetails, user }: UserCardProps) {
           Editar
         </Link>
 
-        <form action={deleteUserAction.bind(null, user.id)}>
-          <button
-            aria-label={`Excluir usuário ${user.name}`}
-            className="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold text-red-700 transition hover:bg-red-50 focus:outline-none focus:ring-4 focus:ring-red-100"
-            type="submit"
-          >
-            Excluir
-          </button>
-        </form>
+        <button
+          aria-label={`Excluir usuário ${user.name}`}
+          className="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold text-red-700 transition hover:bg-red-50 focus:outline-none focus:ring-4 focus:ring-red-100"
+          onClick={() => onRequestDelete(user)}
+          type="button"
+        >
+          Excluir
+        </button>
       </div>
     </article>
   );

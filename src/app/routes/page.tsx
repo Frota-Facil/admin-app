@@ -13,6 +13,7 @@ export default async function RoutesPage() {
     duration: route.duration,
     id: route.id,
     reason: route.reason,
+    status: route.status,
     vehicleModel: route.vehicle.model,
     vehiclePlate: route.vehicle.plate,
   }));

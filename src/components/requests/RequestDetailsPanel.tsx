@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode, useState } from "react";
-import { BackButton } from "@/components/ui/BackButton";
+import { PageBackHeader } from "@/components/ui/PageBackHeader";
 import { UserDetailsModal } from "@/components/users/UserDetailsModal";
 import { VehicleDetailsModal } from "@/components/vehicles/VehicleDetailsModal";
 import type { RequestResponseDTO } from "@/server/contracts/requests/request-response";
@@ -80,19 +80,12 @@ export function RequestDetailsPanel({
   return (
     <div className="min-h-screen bg-slate-100">
       <header className="border-b border-slate-200 bg-white px-8 py-5">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <BackButton href={backHref} />
-            <h1 className="mt-4 text-2xl font-bold tracking-normal text-slate-950">
-              Detalhes da solicitação
-            </h1>
-            <p className="mt-1 text-sm text-slate-500">
-              Informações completas da solicitação de veículo
-            </p>
-          </div>
-
-          <RequestStatusBadge status={request.status} />
-        </div>
+        <PageBackHeader
+          actions={<RequestStatusBadge status={request.status} />}
+          backHref={backHref}
+          subtitle="Informações completas da solicitação de veículo"
+          title="Detalhes da solicitação"
+        />
       </header>
 
       <div className="space-y-5 p-8">
