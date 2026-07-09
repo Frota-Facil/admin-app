@@ -1,6 +1,6 @@
 "use client";
 
-import { Car, FileText } from "lucide-react";
+import { Car, FileText, MapPin } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -28,7 +28,7 @@ const mainNavItems: NavItem[] = [
   { href: "/requests", icon: RequestsIcon, label: "Solicitações" },
   { href: "/routes", icon: HistoryIcon, label: "Rotas" },
   { href: "/logs", icon: FileText, label: "Logs" },
-  { disabled: true, icon: MonitoringIcon, label: "Monitoramento" },
+  { href: "/monitoramento", icon: MapPin, label: "Monitoramento" },
 ];
 
 const systemNavItems: NavItem[] = [
@@ -252,25 +252,6 @@ function HistoryIcon({ className }: IconProps) {
         strokeLinejoin="round"
         strokeWidth="1.8"
       />
-    </svg>
-  );
-}
-
-function MonitoringIcon({ className }: IconProps) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <path
-        d="M12 21s6-5.05 6-10a6 6 0 1 0-12 0c0 4.95 6 10 6 10Z"
-        stroke="currentColor"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
-      />
-      <circle cx="12" cy="11" r="2" stroke="currentColor" strokeWidth="1.8" />
     </svg>
   );
 }

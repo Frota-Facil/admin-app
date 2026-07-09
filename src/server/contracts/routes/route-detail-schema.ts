@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { requestWithRelationsResponseSchema } from "@/server/contracts/requests/request-response";
+import { trackSchema } from "@/server/contracts/tracks/track-schema";
 
 export const routeDetailSchema = z.object({
   id: z.uuid(),
@@ -12,16 +13,7 @@ export const routeDetailSchema = z.object({
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
   request: requestWithRelationsResponseSchema,
-  tracks: z
-    .object({
-      id: z.uuid(),
-      routeId: z.uuid(),
-      xCoordinate: z.number().int(),
-      yCoordinate: z.number().int(),
-      createdAt: z.coerce.date(),
-      updatedAt: z.coerce.date(),
-    })
-    .array(),
+  tracks: trackSchema.array(),
 });
 
 export type RouteDetailDTO = z.infer<typeof routeDetailSchema>;

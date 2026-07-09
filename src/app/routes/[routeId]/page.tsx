@@ -262,22 +262,22 @@ function TracksCard({ tracks }: TracksCardProps) {
           <table className="w-full min-w-[720px] border-collapse text-left">
             <thead className="bg-slate-50">
               <tr className="border-b border-slate-200">
-                <TableHead>Data/hora</TableHead>
-                <TableHead>Latitude / X</TableHead>
-                <TableHead>Longitude / Y</TableHead>
+                <TableHead>Capturado em</TableHead>
+                <TableHead>Latitude</TableHead>
+                <TableHead>Longitude</TableHead>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
               {tracks.map((track) => (
                 <tr className="transition hover:bg-slate-50/80" key={track.id}>
                   <td className="whitespace-nowrap px-4 py-4 text-sm font-semibold text-slate-950">
-                    {formatDateTime(track.createdAt)}
+                    {formatDateTime(track.capturedAt)}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
-                    {track.xCoordinate}
+                    {track.latitude}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
-                    {track.yCoordinate}
+                    {track.longitude}
                   </td>
                 </tr>
               ))}
