@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  ArrowLeft,
+  ArrowRight,
   Camera,
   Car,
   Clock,
@@ -11,11 +13,11 @@ import {
   User,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { NotificationBell } from "@/components/layout/NotificationBell";
 import type {
   ActiveRouteItem,
-  MonitoringPhotoRecord,
+  MonitoringTrackRecord,
 } from "@/components/monitoring/types";
 
 type MonitoringPanelProps = {
@@ -31,11 +33,25 @@ const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {
   year: "numeric",
 });
 
-const monitoringRecords: MonitoringPhotoRecord[] = [];
+const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
+  day: "2-digit",
+  month: "2-digit",
+  timeZone: "America/Fortaleza",
+  year: "numeric",
+});
+
+const timeFormatter = new Intl.DateTimeFormat("pt-BR", {
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: "America/Fortaleza",
+});
 
 export function MonitoringPanel({ routes }: MonitoringPanelProps) {
   const [search, setSearch] = useState("");
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
+  const [trackError, setTrackError] = useState("");
+  const [tracks, setTracks] = useState<MonitoringTrackRecord[]>([]);
+  const [isLoadingTracks, setIsLoadingTracks] = useState(false);
 
   const filteredRoutes = useMemo(() => {
     const normalizedSearch = normalizeText(search);
@@ -62,6 +78,61 @@ export function MonitoringPanel({ routes }: MonitoringPanelProps) {
     () => routes.find((route) => route.id === selectedRouteId) ?? null,
     [routes, selectedRouteId],
   );
+
+  useEffect(() => {
+    if (!selectedRouteId) {
+      setTrackError("");
+      setTracks([]);
+      setIsLoadingTracks(false);
+      return;
+    }
+
+    const routeId = selectedRouteId;
+    const controller = new AbortController();
+
+    async function loadTracks() {
+      setTrackError("");
+      setTracks([]);
+      setIsLoadingTracks(true);
+
+      try {
+        const response = await fetch(
+          `/api/admin/tracks/${encodeURIComponent(routeId)}`,
+          {
+            cache: "no-store",
+            signal: controller.signal,
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error("Não foi possível carregar os registros");
+        }
+
+        const data = (await response.json()) as MonitoringTrackRecord[];
+        setTracks(data);
+      } catch (error) {
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        console.error("Erro ao carregar registros de monitoramento:", error);
+        setTracks([]);
+        setTrackError(
+          "Não foi possível carregar os registros de monitoramento.",
+        );
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoadingTracks(false);
+        }
+      }
+    }
+
+    void loadTracks();
+
+    return () => {
+      controller.abort();
+    };
+  }, [selectedRouteId]);
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -100,8 +171,11 @@ export function MonitoringPanel({ routes }: MonitoringPanelProps) {
             hasActiveRoutes={routes.length > 0}
             selectedRoute={selectedRoute}
           />
-          <MonitoringPhotoGrid
-            records={selectedRoute ? monitoringRecords : []}
+          <MonitoringPhotoCarousel
+            errorMessage={trackError}
+            isLoading={isLoadingTracks}
+            key={selectedRoute?.id ?? "no-selected-route"}
+            records={selectedRoute ? tracks : []}
             route={selectedRoute}
           />
         </main>
@@ -244,12 +318,45 @@ function InfoTile({ icon, label, value }: InfoTileProps) {
   );
 }
 
-type MonitoringPhotoGridProps = {
-  records: MonitoringPhotoRecord[];
+type MonitoringPhotoCarouselProps = {
+  errorMessage: string;
+  isLoading: boolean;
+  records: MonitoringTrackRecord[];
   route: ActiveRouteItem | null;
 };
 
-function MonitoringPhotoGrid({ records, route }: MonitoringPhotoGridProps) {
+function MonitoringPhotoCarousel({
+  errorMessage,
+  isLoading,
+  records,
+  route,
+}: MonitoringPhotoCarouselProps) {
+  const [selectedRecordIndex, setSelectedRecordIndex] = useState(0);
+  const selectedRecord = records[selectedRecordIndex] ?? records[0] ?? null;
+  const hasMultipleRecords = records.length > 1;
+  const isFirstRecord = selectedRecordIndex === 0;
+  const isLastRecord = selectedRecordIndex >= records.length - 1;
+
+  useEffect(() => {
+    setSelectedRecordIndex((currentIndex) => {
+      if (records.length === 0) {
+        return 0;
+      }
+
+      return Math.min(currentIndex, records.length - 1);
+    });
+  }, [records.length]);
+
+  function goToPreviousRecord() {
+    setSelectedRecordIndex((currentIndex) => Math.max(0, currentIndex - 1));
+  }
+
+  function goToNextRecord() {
+    setSelectedRecordIndex((currentIndex) =>
+      Math.min(records.length - 1, currentIndex + 1),
+    );
+  }
+
   return (
     <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
@@ -269,14 +376,85 @@ function MonitoringPhotoGrid({ records, route }: MonitoringPhotoGridProps) {
       </div>
 
       {route ? (
-        records.length === 0 ? (
+        isLoading ? (
+          <MonitoringStateMessage message="Carregando registros de monitoramento..." />
+        ) : errorMessage ? (
+          <MonitoringStateMessage isError message={errorMessage} />
+        ) : records.length === 0 ? (
           <PhotoEmptyState />
         ) : (
-          <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-3">
-            {records.map((record) => (
-              <MonitoringPhotoCard key={record.id} record={record} />
-            ))}
-          </div>
+          selectedRecord && (
+            <div className="space-y-5 p-5">
+              <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+                <div className="aspect-[4/3] w-full">
+                  {selectedRecord.imageUrl ? (
+                    /* biome-ignore lint/performance/noImgElement: tracking map images are generated and stored by the core service. */
+                    <img
+                      alt="Mapa do registro de monitoramento"
+                      className="h-full w-full object-cover"
+                      src={selectedRecord.imageUrl}
+                    />
+                  ) : (
+                    <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-500">
+                      <ImageOff className="h-8 w-8" />
+                      <span className="text-sm font-medium">
+                        Imagem não disponível
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <dl className="grid gap-4 border-t border-slate-200 pt-4 text-sm sm:grid-cols-2 xl:grid-cols-4">
+                <TrackCardInfo
+                  label="Data"
+                  value={formatDate(selectedRecord.capturedAt)}
+                />
+                <TrackCardInfo
+                  label="Horário"
+                  value={formatTime(selectedRecord.capturedAt)}
+                />
+                <TrackCardInfo
+                  label="Latitude"
+                  value={formatCoordinate(selectedRecord.latitude)}
+                />
+                <TrackCardInfo
+                  label="Longitude"
+                  value={formatCoordinate(selectedRecord.longitude)}
+                />
+              </dl>
+
+              {hasMultipleRecords ? (
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4">
+                  <span className="text-sm font-semibold text-slate-600">
+                    {selectedRecordIndex + 1} de {records.length}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      aria-label="Registro anterior"
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+                      disabled={isFirstRecord}
+                      onClick={goToPreviousRecord}
+                      title="Registro anterior"
+                      type="button"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                      aria-label="Próximo registro"
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+                      disabled={isLastRecord}
+                      onClick={goToNextRecord}
+                      title="Próximo registro"
+                      type="button"
+                    >
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          )
         )
       ) : (
         <div className="p-10 text-center">
@@ -297,39 +475,48 @@ function PhotoEmptyState() {
           <ImageOff className="h-6 w-6" />
         </div>
         <h3 className="mt-4 text-sm font-bold tracking-normal text-slate-950">
-          Nenhum registro de foto encontrado para esta rota.
+          Nenhum registro de monitoramento encontrado para esta rota.
         </h3>
-        <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">
-          Os registros do monitoramento serão exibidos aqui quando estiverem
-          disponíveis.
-        </p>
       </div>
     </div>
   );
 }
 
-type MonitoringPhotoCardProps = {
-  record: MonitoringPhotoRecord;
+type MonitoringStateMessageProps = {
+  isError?: boolean;
+  message: string;
 };
 
-function MonitoringPhotoCard({ record }: MonitoringPhotoCardProps) {
+function MonitoringStateMessage({
+  isError = false,
+  message,
+}: MonitoringStateMessageProps) {
   return (
-    <article className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-      <div className="aspect-video bg-slate-100">
-        {/* biome-ignore lint/performance/noImgElement: future monitoring photos will come from the core service. */}
-        <img
-          alt="Registro de monitoramento"
-          className="h-full w-full object-cover"
-          src={record.imageUrl}
-        />
-      </div>
-      <div className="space-y-2 p-4 text-sm">
-        <p className="font-bold text-slate-950">
-          {formatDateTime(record.capturedAt)}
-        </p>
-        <p className="text-slate-500">{record.locationText ?? "-"}</p>
-      </div>
-    </article>
+    <div className="p-10 text-center">
+      <p
+        className={`text-sm font-medium ${
+          isError ? "text-red-600" : "text-slate-500"
+        }`}
+      >
+        {message}
+      </p>
+    </div>
+  );
+}
+
+type TrackCardInfoProps = {
+  label: string;
+  value: string;
+};
+
+function TrackCardInfo({ label, value }: TrackCardInfoProps) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-xs font-bold uppercase tracking-normal text-slate-500">
+        {label}
+      </dt>
+      <dd className="mt-1 break-words font-semibold text-slate-950">{value}</dd>
+    </div>
   );
 }
 
@@ -479,6 +666,30 @@ function formatDateTime(value: string) {
   }
 
   return dateTimeFormatter.format(date);
+}
+
+function formatDate(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  return dateFormatter.format(date);
+}
+
+function formatTime(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  return timeFormatter.format(date);
+}
+
+function formatCoordinate(value: number) {
+  return value.toFixed(6);
 }
 
 function normalizeText(value: string) {

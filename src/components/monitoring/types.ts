@@ -8,9 +8,12 @@ export type ActiveRouteItem = {
   vehiclePlate: string;
 };
 
-export type MonitoringPhotoRecord = {
+export type MonitoringTrackRecord = {
   capturedAt: string;
   id: string;
-  imageUrl: string;
-  locationText?: string | null;
+  imageKey: string | null;
+  imageUrl: string | null;
+  latitude: number;
+  longitude: number;
+  routeId: string;
 };
