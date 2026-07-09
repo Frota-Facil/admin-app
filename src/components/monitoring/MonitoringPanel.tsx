@@ -19,6 +19,8 @@ import type {
   ActiveRouteItem,
   MonitoringTrackRecord,
 } from "@/components/monitoring/types";
+import { TRACK_CREATED_EVENT } from "@/components/routes/RouteEventListener";
+import type { TrackCreatedEventDTO } from "@/server/contracts/tracks/track-created-event";
 
 type MonitoringPanelProps = {
   routes: ActiveRouteItem[];
@@ -131,6 +133,32 @@ export function MonitoringPanel({ routes }: MonitoringPanelProps) {
 
     return () => {
       controller.abort();
+    };
+  }, [selectedRouteId]);
+
+  useEffect(() => {
+    function handleTrackCreated(event: Event) {
+      const { detail } = event as CustomEvent<TrackCreatedEventDTO>;
+
+      if (!detail || detail.routeId !== selectedRouteId) {
+        return;
+      }
+
+      const nextRecord = toMonitoringTrackRecord(detail);
+
+      setTracks((currentTracks) => {
+        if (currentTracks.some((track) => track.id === nextRecord.id)) {
+          return currentTracks;
+        }
+
+        return [...currentTracks, nextRecord];
+      });
+    }
+
+    window.addEventListener(TRACK_CREATED_EVENT, handleTrackCreated);
+
+    return () => {
+      window.removeEventListener(TRACK_CREATED_EVENT, handleTrackCreated);
     };
   }, [selectedRouteId]);
 
@@ -698,4 +726,18 @@ function normalizeText(value: string) {
     .replace(/[\u0300-\u036f]/g, "")
     .trim()
     .toLocaleLowerCase("pt-BR");
+}
+
+function toMonitoringTrackRecord(
+  event: TrackCreatedEventDTO,
+): MonitoringTrackRecord {
+  return {
+    capturedAt: event.track.capturedAt.toISOString(),
+    id: event.track.id,
+    imageKey: event.track.imageKey,
+    imageUrl: event.track.imageUrl,
+    latitude: event.track.latitude,
+    longitude: event.track.longitude,
+    routeId: event.routeId,
+  };
 }

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { NotificationBell } from "@/components/layout/NotificationBell";
+import { TracksCard } from "@/components/routes/TracksCard";
 import { PageBackHeader } from "@/components/ui/PageBackHeader";
 import type { RouteDetailDTO } from "@/server/contracts/routes/route-detail-schema";
 import { fetchRouteDetailUseCase } from "@/server/use-cases/fetch-route-detail-use-case";
@@ -202,7 +203,7 @@ export default async function RouteDetailPage({
 
           <SummaryCard route={route} />
 
-          <TracksCard tracks={route.tracks} />
+          <TracksCard routeId={route.id} tracks={route.tracks} />
         </div>
       </div>
     </AdminLayout>
@@ -234,57 +235,6 @@ function SummaryCard({ route }: SummaryCardProps) {
           value={<StatusBadge status={route.status} />}
         />
       </dl>
-    </section>
-  );
-}
-
-type TracksCardProps = {
-  tracks: RouteDetailDTO["tracks"];
-};
-
-function TracksCard({ tracks }: TracksCardProps) {
-  return (
-    <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-200 px-5 py-4">
-        <h2 className="text-base font-bold tracking-normal text-slate-950">
-          Tracks
-        </h2>
-      </div>
-
-      {tracks.length === 0 ? (
-        <div className="p-10 text-center">
-          <p className="text-sm font-medium text-slate-500">
-            Nenhum track encontrado.
-          </p>
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] border-collapse text-left">
-            <thead className="bg-slate-50">
-              <tr className="border-b border-slate-200">
-                <TableHead>Capturado em</TableHead>
-                <TableHead>Latitude</TableHead>
-                <TableHead>Longitude</TableHead>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {tracks.map((track) => (
-                <tr className="transition hover:bg-slate-50/80" key={track.id}>
-                  <td className="whitespace-nowrap px-4 py-4 text-sm font-semibold text-slate-950">
-                    {formatDateTime(track.capturedAt)}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
-                    {track.latitude}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
-                    {track.longitude}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
     </section>
   );
 }
@@ -341,18 +291,6 @@ function SummaryItem({ label, value }: SummaryItemProps) {
         {value || "-"}
       </dd>
     </div>
-  );
-}
-
-type TableHeadProps = {
-  children: ReactNode;
-};
-
-function TableHead({ children }: TableHeadProps) {
-  return (
-    <th className="px-4 py-3 text-xs font-bold uppercase tracking-normal text-slate-500">
-      {children}
-    </th>
   );
 }
 

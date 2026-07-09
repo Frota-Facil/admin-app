@@ -3,6 +3,9 @@
 import { useEffect } from "react";
 import { useToast } from "@/components/toast/ToastProvider";
 import { routeStartedEventSchema } from "@/server/contracts/routes/route-started-event";
+import { trackCreatedEventSchema } from "@/server/contracts/tracks/track-created-event";
+
+export const TRACK_CREATED_EVENT = "admin-track-created";
 
 export function RouteEventListener() {
   const { showToast } = useToast();
@@ -29,7 +32,24 @@ export function RouteEventListener() {
       });
     }
 
+    function handleTrackCreated(event: MessageEvent<string>) {
+      const parsedJson = parseJson(event.data);
+      const parsedEvent = trackCreatedEventSchema.safeParse(parsedJson);
+
+      if (!parsedEvent.success) {
+        console.warn("Evento de track criada inválido:", parsedEvent.error);
+        return;
+      }
+
+      window.dispatchEvent(
+        new CustomEvent(TRACK_CREATED_EVENT, {
+          detail: parsedEvent.data,
+        }),
+      );
+    }
+
     eventSource.addEventListener("route.started", handleRouteStarted);
+    eventSource.addEventListener("track.created", handleTrackCreated);
 
     eventSource.onerror = () => {
       console.warn("SSE de rotas indisponível. Usando atualização manual.");
@@ -37,6 +57,7 @@ export function RouteEventListener() {
 
     return () => {
       eventSource.removeEventListener("route.started", handleRouteStarted);
+      eventSource.removeEventListener("track.created", handleTrackCreated);
       eventSource.close();
     };
   }, [showToast]);
