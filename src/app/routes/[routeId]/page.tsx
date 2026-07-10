@@ -59,6 +59,8 @@ const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {
   year: "numeric",
 });
 
+const EMPTY_VALUE = "Não informado";
+
 export default async function RouteDetailPage({
   params,
 }: RouteDetailPageProps) {
@@ -91,17 +93,8 @@ export default async function RouteDetailPage({
             <DetailCard title="Dados da rota">
               <dl className="grid gap-3 sm:grid-cols-2">
                 <DetailItem
-                  className="sm:col-span-2"
-                  label="ID da rota"
-                  value={<MutedId value={route.id} />}
-                />
-                <DetailItem
                   label="Status da rota"
                   value={<StatusBadge status={route.status} />}
-                />
-                <DetailItem
-                  label="ID da solicitação"
-                  value={<MutedId value={route.requestId} />}
                 />
                 <DetailItem
                   className="sm:col-span-2"
@@ -135,37 +128,16 @@ export default async function RouteDetailPage({
             <DetailCard title="Dados da solicitação">
               <dl className="grid gap-3 sm:grid-cols-2">
                 <DetailItem
-                  className="sm:col-span-2"
-                  label="ID da solicitação"
-                  value={<MutedId value={route.request.id} />}
-                />
-                <DetailItem
                   label="Usuário / Motorista"
-                  value={
-                    <EntityValue
-                      detail={route.request.userId}
-                      label={route.request.user.name}
-                    />
-                  }
+                  value={route.request.user.name || EMPTY_VALUE}
                 />
                 <DetailItem
                   label="Veículo"
-                  value={
-                    <EntityValue
-                      detail={route.request.vehicleId}
-                      label={route.request.vehicle.model}
-                    />
-                  }
+                  value={formatVehicle(route.request.vehicle)}
                 />
                 <DetailItem
                   label="Aprovada por"
-                  value={
-                    route.request.approvedBy ? (
-                      <MutedId value={route.request.approvedBy} />
-                    ) : (
-                      "-"
-                    )
-                  }
+                  value={route.request.approvedByUser?.name || EMPTY_VALUE}
                 />
                 <DetailItem
                   label="Status da solicitação"
@@ -203,7 +175,11 @@ export default async function RouteDetailPage({
 
           <SummaryCard route={route} />
 
-          <TracksCard routeId={route.id} tracks={route.tracks} />
+          <TracksCard
+            routeId={route.id}
+            status={route.status}
+            tracks={route.tracks}
+          />
         </div>
       </div>
     </AdminLayout>
@@ -223,7 +199,10 @@ function SummaryCard({ route }: SummaryCardProps) {
 
       <dl className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
         <SummaryItem label="Motorista" value={route.request.user.name} />
-        <SummaryItem label="Veículo" value={route.request.vehicle.model} />
+        <SummaryItem
+          label="Veículo"
+          value={formatVehicle(route.request.vehicle)}
+        />
         <SummaryItem label="Destino" value={route.request.destination || "-"} />
         <SummaryItem label="Finalidade" value={route.request.reason || "-"} />
         <SummaryItem
@@ -294,32 +273,6 @@ function SummaryItem({ label, value }: SummaryItemProps) {
   );
 }
 
-type EntityValueProps = {
-  detail?: string | null;
-  label: string;
-};
-
-function EntityValue({ detail, label }: EntityValueProps) {
-  return (
-    <span>
-      <span className="block">{label}</span>
-      {detail ? <MutedId value={detail} /> : null}
-    </span>
-  );
-}
-
-type MutedIdProps = {
-  value: string;
-};
-
-function MutedId({ value }: MutedIdProps) {
-  return (
-    <span className="block break-all font-mono text-xs font-medium text-slate-500">
-      {value}
-    </span>
-  );
-}
-
 type StatusBadgeProps = {
   status: string;
 };
@@ -365,6 +318,10 @@ function formatDateTime(value?: Date | string | null) {
   }
 
   return dateTimeFormatter.format(date);
+}
+
+function formatVehicle(vehicle: RouteDetailDTO["request"]["vehicle"]) {
+  return `${vehicle.model} · ${vehicle.plate}`;
 }
 
 function formatDuration(

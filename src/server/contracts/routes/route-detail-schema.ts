@@ -2,6 +2,20 @@ import { z } from "zod";
 import { requestWithRelationsResponseSchema } from "@/server/contracts/requests/request-response";
 import { trackSchema } from "@/server/contracts/tracks/track-schema";
 
+const routeDetailRequestSchema = requestWithRelationsResponseSchema.extend({
+  vehicle: z.object({
+    id: z.uuid(),
+    model: z.string(),
+    plate: z.string(),
+  }),
+  approvedByUser: z
+    .object({
+      id: z.uuid(),
+      name: z.string(),
+    })
+    .nullish(),
+});
+
 export const routeDetailSchema = z.object({
   id: z.uuid(),
   requestId: z.uuid(),
@@ -12,7 +26,7 @@ export const routeDetailSchema = z.object({
   finishedAt: z.coerce.date().nullish(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
-  request: requestWithRelationsResponseSchema,
+  request: routeDetailRequestSchema,
   tracks: trackSchema.array(),
 });
 

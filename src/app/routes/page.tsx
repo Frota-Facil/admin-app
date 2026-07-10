@@ -1,9 +1,11 @@
 import { AdminLayout } from "@/components/layout/AdminLayout";
+import type { RouteDTO } from "@/server/contracts/routes/route-schema";
+import { redirectCoreUnauthorized } from "@/server/navigation/redirect-core-unauthorized";
 import { fetchRoutesUseCase } from "@/server/use-cases/fetch-routes-use-case";
 import { type RouteListItem, RoutesPanel } from "./routes-panel";
 
 export default async function RoutesPage() {
-  const routes = await fetchRoutesUseCase();
+  const routes = await fetchRoutesPageData();
 
   const routeItems: RouteListItem[] = routes.map((route) => ({
     date: route.date.toISOString(),
@@ -23,4 +25,12 @@ export default async function RoutesPage() {
       <RoutesPanel routes={routeItems} />
     </AdminLayout>
   );
+}
+
+async function fetchRoutesPageData(): Promise<RouteDTO[]> {
+  try {
+    return await fetchRoutesUseCase();
+  } catch (error) {
+    redirectCoreUnauthorized(error);
+  }
 }

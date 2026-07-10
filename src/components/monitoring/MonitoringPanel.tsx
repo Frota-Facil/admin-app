@@ -23,6 +23,7 @@ import { TRACK_CREATED_EVENT } from "@/components/routes/RouteEventListener";
 import type { TrackCreatedEventDTO } from "@/server/contracts/tracks/track-created-event";
 
 type MonitoringPanelProps = {
+  initialSelectedRouteId?: string | null;
   routes: ActiveRouteItem[];
 };
 
@@ -48,9 +49,14 @@ const timeFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeZone: "America/Fortaleza",
 });
 
-export function MonitoringPanel({ routes }: MonitoringPanelProps) {
+export function MonitoringPanel({
+  initialSelectedRouteId = null,
+  routes,
+}: MonitoringPanelProps) {
   const [search, setSearch] = useState("");
-  const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
+  const [selectedRouteId, setSelectedRouteId] = useState<string | null>(() =>
+    getSelectableRouteId(routes, initialSelectedRouteId),
+  );
   const [trackError, setTrackError] = useState("");
   const [tracks, setTracks] = useState<MonitoringTrackRecord[]>([]);
   const [isLoadingTracks, setIsLoadingTracks] = useState(false);
@@ -80,6 +86,14 @@ export function MonitoringPanel({ routes }: MonitoringPanelProps) {
     () => routes.find((route) => route.id === selectedRouteId) ?? null,
     [routes, selectedRouteId],
   );
+
+  useEffect(() => {
+    const routeId = getSelectableRouteId(routes, initialSelectedRouteId);
+
+    if (routeId) {
+      setSelectedRouteId(routeId);
+    }
+  }, [initialSelectedRouteId, routes]);
 
   useEffect(() => {
     if (!selectedRouteId) {
@@ -726,6 +740,17 @@ function normalizeText(value: string) {
     .replace(/[\u0300-\u036f]/g, "")
     .trim()
     .toLocaleLowerCase("pt-BR");
+}
+
+function getSelectableRouteId(
+  routes: ActiveRouteItem[],
+  routeId?: string | null,
+) {
+  if (!routeId) {
+    return null;
+  }
+
+  return routes.some((route) => route.id === routeId) ? routeId : null;
 }
 
 function toMonitoringTrackRecord(

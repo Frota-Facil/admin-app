@@ -1,13 +1,13 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
-import { TRACK_CREATED_EVENT } from "@/components/routes/RouteEventListener";
+import { ArrowLeft, ArrowRight, ExternalLink, ImageOff } from "lucide-react";
+import Link from "next/link";
+import { type ReactNode, useEffect, useState } from "react";
 import type { RouteDetailDTO } from "@/server/contracts/routes/route-detail-schema";
-import type { TrackCreatedEventDTO } from "@/server/contracts/tracks/track-created-event";
 
 type TracksCardProps = {
   routeId: string;
+  status: string;
   tracks: RouteDetailDTO["tracks"];
 };
 
@@ -19,93 +19,221 @@ const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {
   year: "numeric",
 });
 
-export function TracksCard({ routeId, tracks }: TracksCardProps) {
-  const [trackList, setTrackList] = useState(tracks);
-
-  useEffect(() => {
-    setTrackList(tracks);
-  }, [tracks]);
-
-  useEffect(() => {
-    function handleTrackCreated(event: Event) {
-      const { detail } = event as CustomEvent<TrackCreatedEventDTO>;
-
-      if (!detail || detail.routeId !== routeId) {
-        return;
-      }
-
-      setTrackList((currentTracks) => {
-        if (currentTracks.some((track) => track.id === detail.track.id)) {
-          return currentTracks;
-        }
-
-        return [...currentTracks, detail.track];
-      });
-    }
-
-    window.addEventListener(TRACK_CREATED_EVENT, handleTrackCreated);
-
-    return () => {
-      window.removeEventListener(TRACK_CREATED_EVENT, handleTrackCreated);
-    };
-  }, [routeId]);
+export function TracksCard({ routeId, status, tracks }: TracksCardProps) {
+  const normalizedStatus = normalizeStatus(status);
+  const sortedTracks = [...tracks].sort(
+    (leftTrack, rightTrack) =>
+      getDateTime(leftTrack.capturedAt) - getDateTime(rightTrack.capturedAt),
+  );
 
   return (
     <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
       <div className="border-b border-slate-200 px-5 py-4">
         <h2 className="text-base font-bold tracking-normal text-slate-950">
-          Tracks
+          Imagens da rota
         </h2>
       </div>
 
-      {trackList.length === 0 ? (
-        <div className="p-10 text-center">
-          <p className="text-sm font-medium text-slate-500">
-            Nenhum track encontrado.
-          </p>
-        </div>
+      {isFinishedRoute(normalizedStatus) ? (
+        <FinishedRouteGallery tracks={sortedTracks} />
+      ) : isStartedRoute(normalizedStatus) ? (
+        <StartedRouteMessage routeId={routeId} />
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] border-collapse text-left">
-            <thead className="bg-slate-50">
-              <tr className="border-b border-slate-200">
-                <TableHead>Capturado em</TableHead>
-                <TableHead>Latitude</TableHead>
-                <TableHead>Longitude</TableHead>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {trackList.map((track) => (
-                <tr className="transition hover:bg-slate-50/80" key={track.id}>
-                  <td className="whitespace-nowrap px-4 py-4 text-sm font-semibold text-slate-950">
-                    {formatDateTime(track.capturedAt)}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
-                    {track.latitude}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
-                    {track.longitude}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <NotStartedRouteMessage />
       )}
     </section>
   );
 }
 
-type TableHeadProps = {
-  children: ReactNode;
+type FinishedRouteGalleryProps = {
+  tracks: RouteDetailDTO["tracks"];
 };
 
-function TableHead({ children }: TableHeadProps) {
+function FinishedRouteGallery({ tracks }: FinishedRouteGalleryProps) {
+  const [selectedTrackIndex, setSelectedTrackIndex] = useState(0);
+  const selectedTrack = tracks[selectedTrackIndex] ?? tracks[0] ?? null;
+  const hasMultipleTracks = tracks.length > 1;
+  const isFirstTrack = selectedTrackIndex === 0;
+  const isLastTrack = selectedTrackIndex >= tracks.length - 1;
+
+  useEffect(() => {
+    setSelectedTrackIndex((currentIndex) => {
+      if (tracks.length === 0) {
+        return 0;
+      }
+
+      return Math.min(currentIndex, tracks.length - 1);
+    });
+  }, [tracks.length]);
+
+  function goToPreviousTrack() {
+    setSelectedTrackIndex((currentIndex) => Math.max(0, currentIndex - 1));
+  }
+
+  function goToNextTrack() {
+    setSelectedTrackIndex((currentIndex) =>
+      Math.min(tracks.length - 1, currentIndex + 1),
+    );
+  }
+
+  if (tracks.length === 0) {
+    return (
+      <div className="p-10 text-center">
+        <p className="text-sm font-medium text-slate-500">
+          Nenhum registro de monitoramento encontrado para esta rota.
+        </p>
+      </div>
+    );
+  }
+
+  if (!selectedTrack) {
+    return null;
+  }
+
   return (
-    <th className="px-4 py-3 text-xs font-bold uppercase tracking-normal text-slate-500">
-      {children}
-    </th>
+    <div className="space-y-4 p-5">
+      <article className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+        <div className="h-[360px] overflow-hidden bg-slate-100 md:h-[520px]">
+          {selectedTrack.imageUrl ? (
+            /* biome-ignore lint/performance/noImgElement: tracking map images are generated by the core service and returned as external URLs. */
+            <img
+              alt="Mapa do registro de monitoramento"
+              className="block h-full w-full object-cover"
+              src={selectedTrack.imageUrl}
+            />
+          ) : (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-3 px-6 text-center text-slate-500">
+              <ImageOff className="h-10 w-10" />
+              <span className="text-sm font-medium">
+                Imagem não disponível para este registro.
+              </span>
+            </div>
+          )}
+        </div>
+
+        <dl className="grid gap-4 border-t border-slate-200 bg-white p-5 text-sm sm:grid-cols-3">
+          <TrackInfo
+            label="Capturado em"
+            value={formatDateTime(selectedTrack.capturedAt)}
+          />
+          <TrackInfo
+            label="Latitude"
+            value={formatCoordinate(selectedTrack.latitude)}
+          />
+          <TrackInfo
+            label="Longitude"
+            value={formatCoordinate(selectedTrack.longitude)}
+          />
+        </dl>
+      </article>
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <span className="text-sm font-semibold text-slate-600">
+          {selectedTrackIndex + 1} de {tracks.length}
+        </span>
+
+        {hasMultipleTracks ? (
+          <div className="flex items-center gap-2">
+            <button
+              aria-label="Imagem anterior"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+              disabled={isFirstTrack}
+              onClick={goToPreviousTrack}
+              title="Imagem anterior"
+              type="button"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </button>
+            <button
+              aria-label="Próxima imagem"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+              disabled={isLastTrack}
+              onClick={goToNextTrack}
+              title="Próxima imagem"
+              type="button"
+            >
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        ) : null}
+      </div>
+    </div>
   );
+}
+
+type StartedRouteMessageProps = {
+  routeId: string;
+};
+
+function StartedRouteMessage({ routeId }: StartedRouteMessageProps) {
+  return (
+    <div className="p-10 text-center">
+      <p className="mx-auto max-w-lg text-sm font-medium leading-6 text-slate-500">
+        A rota ainda não foi finalizada. Para ver as imagens em tempo real
+        clique em "Ver imagens".
+      </p>
+      <Link
+        className="mt-5 inline-flex items-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200"
+        href={`/monitoramento?routeId=${encodeURIComponent(routeId)}`}
+      >
+        <ExternalLink className="h-4 w-4" />
+        Ver imagens
+      </Link>
+    </div>
+  );
+}
+
+function NotStartedRouteMessage() {
+  return (
+    <div className="p-10 text-center">
+      <p className="mx-auto max-w-lg text-sm font-medium leading-6 text-slate-500">
+        A rota ainda não foi iniciada. Os registros de monitoramento aparecerão
+        após o início da viagem.
+      </p>
+    </div>
+  );
+}
+
+type TrackInfoProps = {
+  label: string;
+  value: ReactNode;
+};
+
+function TrackInfo({ label, value }: TrackInfoProps) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-xs font-bold uppercase tracking-normal text-slate-500">
+        {label}
+      </dt>
+      <dd className="mt-1 break-words font-semibold text-slate-950">{value}</dd>
+    </div>
+  );
+}
+
+function normalizeStatus(status: string) {
+  return status.trim().toUpperCase().replace(/[\s-]/g, "_");
+}
+
+function isFinishedRoute(status: string) {
+  return ["FINISHED", "COMPLETED", "CONCLUDED"].includes(status);
+}
+
+function isStartedRoute(status: string) {
+  return ["STARTED", "IN_PROGRESS", "EM_ANDAMENTO"].includes(status);
+}
+
+function getDateTime(value?: Date | string | null) {
+  if (!value) {
+    return 0;
+  }
+
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return 0;
+  }
+
+  return date.getTime();
 }
 
 function formatDateTime(value?: Date | string | null) {
@@ -120,4 +248,8 @@ function formatDateTime(value?: Date | string | null) {
   }
 
   return dateTimeFormatter.format(date);
+}
+
+function formatCoordinate(value: number) {
+  return value.toFixed(6);
 }
