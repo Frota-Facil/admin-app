@@ -3,13 +3,29 @@
 import { type ReactNode, useEffect } from "react";
 
 type DetailsModalProps = {
+  bodyClassName?: string;
   children: ReactNode;
   onClose: () => void;
+  panelClassName?: string;
   title: string;
 };
 
-export function DetailsModal({ children, onClose, title }: DetailsModalProps) {
+const defaultPanelClassName =
+  "relative z-10 flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl shadow-slate-950/20";
+
+const defaultBodyClassName = "min-h-0 flex-1 overflow-y-auto p-6";
+
+export function DetailsModal({
+  bodyClassName = defaultBodyClassName,
+  children,
+  onClose,
+  panelClassName = defaultPanelClassName,
+  title,
+}: DetailsModalProps) {
   useEffect(() => {
+    const originalBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         onClose();
@@ -19,6 +35,7 @@ export function DetailsModal({ children, onClose, title }: DetailsModalProps) {
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
+      document.body.style.overflow = originalBodyOverflow;
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [onClose]);
@@ -32,11 +49,7 @@ export function DetailsModal({ children, onClose, title }: DetailsModalProps) {
         type="button"
       />
 
-      <section
-        aria-modal="true"
-        className="relative z-10 flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl shadow-slate-950/20"
-        role="dialog"
-      >
+      <section aria-modal="true" className={panelClassName} role="dialog">
         <header className="flex items-center justify-between gap-4 border-b border-slate-200 px-6 py-4">
           <h2 className="text-lg font-bold tracking-normal text-slate-950">
             {title}
@@ -52,7 +65,7 @@ export function DetailsModal({ children, onClose, title }: DetailsModalProps) {
           </button>
         </header>
 
-        <div className="overflow-y-auto p-6">{children}</div>
+        <div className={bodyClassName}>{children}</div>
       </section>
     </div>
   );

@@ -1,6 +1,5 @@
 import { LogsPanel } from "@/app/logs/logs-panel";
 import { AdminLayout } from "@/components/layout/AdminLayout";
-import { NotificationBell } from "@/components/layout/NotificationBell";
 import { fetchAuditLogsUseCase } from "@/server/use-cases/fetch-audit-logs-use-case";
 import { fetchUsersUseCase } from "@/server/use-cases/fetch-users-use-case";
 
@@ -23,8 +22,6 @@ export default async function LogsPage() {
                 Registro de atividades do sistema
               </p>
             </div>
-
-            <NotificationBell />
           </div>
         </header>
 

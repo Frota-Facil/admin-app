@@ -4,20 +4,13 @@ import { ArrowLeft, ArrowRight, ExternalLink, ImageOff } from "lucide-react";
 import Link from "next/link";
 import { type ReactNode, useEffect, useState } from "react";
 import type { RouteDetailDTO } from "@/server/contracts/routes/route-detail-schema";
+import { formatDateTimeBR } from "@/utils/date-format";
 
 type TracksCardProps = {
   routeId: string;
   status: string;
   tracks: RouteDetailDTO["tracks"];
 };
-
-const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-});
 
 export function TracksCard({ routeId, status, tracks }: TracksCardProps) {
   const normalizedStatus = normalizeStatus(status);
@@ -114,7 +107,7 @@ function FinishedRouteGallery({ tracks }: FinishedRouteGalleryProps) {
         <dl className="grid gap-4 border-t border-slate-200 bg-white p-5 text-sm sm:grid-cols-3">
           <TrackInfo
             label="Capturado em"
-            value={formatDateTime(selectedTrack.capturedAt)}
+            value={formatDateTimeBR(selectedTrack.capturedAt)}
           />
           <TrackInfo
             label="Latitude"
@@ -234,20 +227,6 @@ function getDateTime(value?: Date | string | null) {
   }
 
   return date.getTime();
-}
-
-function formatDateTime(value?: Date | string | null) {
-  if (!value) {
-    return "-";
-  }
-
-  const date = value instanceof Date ? value : new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "-";
-  }
-
-  return dateTimeFormatter.format(date);
 }
 
 function formatCoordinate(value: number) {

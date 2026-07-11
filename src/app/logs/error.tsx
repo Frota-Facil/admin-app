@@ -1,7 +1,6 @@
 "use client";
 
 import { AdminLayout } from "@/components/layout/AdminLayout";
-import { NotificationBell } from "@/components/layout/NotificationBell";
 
 export default function LogsError() {
   return (
@@ -17,8 +16,6 @@ export default function LogsError() {
                 Registro de atividades do sistema
               </p>
             </div>
-
-            <NotificationBell />
           </div>
         </header>
 

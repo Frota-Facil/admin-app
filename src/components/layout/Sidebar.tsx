@@ -31,11 +31,6 @@ const mainNavItems: NavItem[] = [
   { href: "/monitoramento", icon: MapPin, label: "Monitoramento" },
 ];
 
-const systemNavItems: NavItem[] = [
-  { disabled: true, icon: BellIcon, label: "Notificações" },
-  { disabled: true, icon: SettingsIcon, label: "Configurações" },
-];
-
 export function Sidebar({ isOpen }: SidebarProps) {
   const pathname = usePathname();
 
@@ -75,12 +70,6 @@ export function Sidebar({ isOpen }: SidebarProps) {
           items={mainNavItems}
           pathname={pathname}
           title="Menu principal"
-        />
-        <NavSection
-          isOpen={isOpen}
-          items={systemNavItems}
-          pathname={pathname}
-          title="Sistema"
         />
       </nav>
 
@@ -249,48 +238,6 @@ function HistoryIcon({ className }: IconProps) {
         d="M5 6.5V11h4.5M5.45 11A7 7 0 1 0 7.5 6.05M12 8v4l2.5 2.5"
         stroke="currentColor"
         strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
-      />
-    </svg>
-  );
-}
-
-function BellIcon({ className }: IconProps) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <path
-        d="M9.5 19a2.5 2.5 0 0 0 5 0M18 16H6l1.4-2.1V10a4.6 4.6 0 0 1 9.2 0v3.9L18 16Z"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
-      />
-    </svg>
-  );
-}
-
-function SettingsIcon({ className }: IconProps) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <path
-        d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-      <path
-        d="M18.5 13.5a7.6 7.6 0 0 0 .05-3l2-1.5-2-3.5-2.45 1a7.4 7.4 0 0 0-2.6-1.5L13 2.5h-4l-.5 2.5a7.4 7.4 0 0 0-2.6 1.5l-2.45-1-2 3.5 2 1.5a7.6 7.6 0 0 0 .05 3l-2 1.5 2 3.5 2.45-1a7.4 7.4 0 0 0 2.6 1.5l.5 2.5h4l.5-2.5a7.4 7.4 0 0 0 2.6-1.5l2.45 1 2-3.5-2.1-1.5Z"
-        stroke="currentColor"
         strokeLinejoin="round"
         strokeWidth="1.8"
       />

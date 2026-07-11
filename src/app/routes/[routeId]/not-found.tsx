@@ -1,5 +1,4 @@
 import { AdminLayout } from "@/components/layout/AdminLayout";
-import { NotificationBell } from "@/components/layout/NotificationBell";
 import { PageBackHeader } from "@/components/ui/PageBackHeader";
 
 export default function RouteDetailNotFound() {
@@ -8,7 +7,6 @@ export default function RouteDetailNotFound() {
       <div className="min-h-screen bg-slate-100">
         <header className="border-b border-slate-200 bg-white px-8 py-5">
           <PageBackHeader
-            actions={<NotificationBell />}
             backHref="/routes"
             subtitle="Informações completas da rota finalizada"
             title="Detalhes da rota"

@@ -4,7 +4,6 @@ import { Eye } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
-import { NotificationBell } from "@/components/layout/NotificationBell";
 
 export type RouteListItem = {
   date: string;
@@ -134,8 +133,6 @@ export function RoutesPanel({ routes }: RoutesPanelProps) {
                 value={search}
               />
             </label>
-
-            <NotificationBell />
           </div>
         </div>
       </header>

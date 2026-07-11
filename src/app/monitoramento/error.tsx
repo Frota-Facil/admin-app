@@ -2,7 +2,6 @@
 
 import { Search } from "lucide-react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
-import { NotificationBell } from "@/components/layout/NotificationBell";
 
 type MonitoringErrorProps = {
   reset: () => void;
@@ -34,8 +33,6 @@ export default function MonitoringError({ reset }: MonitoringErrorProps) {
                   type="search"
                 />
               </label>
-
-              <NotificationBell />
             </div>
           </div>
         </header>

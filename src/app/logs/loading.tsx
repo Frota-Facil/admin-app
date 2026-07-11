@@ -1,5 +1,4 @@
 import { AdminLayout } from "@/components/layout/AdminLayout";
-import { NotificationBell } from "@/components/layout/NotificationBell";
 
 export default function LogsLoading() {
   return (
@@ -15,8 +14,6 @@ export default function LogsLoading() {
                 Registro de atividades do sistema
               </p>
             </div>
-
-            <NotificationBell />
           </div>
         </header>
 

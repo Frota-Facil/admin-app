@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useMemo, useState } from "react";
 import { deleteVehicleWithResultAction } from "@/app/vehicles/actions";
-import { NotificationBell } from "@/components/layout/NotificationBell";
 import { useToast } from "@/components/toast/ToastProvider";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { VehicleDetailsModal } from "@/components/vehicles/VehicleDetailsModal";
@@ -150,8 +149,6 @@ export function VehiclesPanel({ vehicles }: VehiclesPanelProps) {
                 value={search}
               />
             </label>
-
-            <NotificationBell />
           </div>
         </div>
       </header>

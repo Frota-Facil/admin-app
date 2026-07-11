@@ -1,5 +1,4 @@
 import { AdminLayout } from "@/components/layout/AdminLayout";
-import { NotificationBell } from "@/components/layout/NotificationBell";
 
 export default function MonitoringLoading() {
   return (
@@ -18,7 +17,6 @@ export default function MonitoringLoading() {
 
             <div className="flex flex-wrap items-center justify-end gap-3">
               <div className="h-10 w-[280px] max-w-full rounded-lg bg-slate-100" />
-              <NotificationBell />
             </div>
           </div>
         </header>

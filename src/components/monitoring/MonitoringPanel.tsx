@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
-import { NotificationBell } from "@/components/layout/NotificationBell";
 import type {
   ActiveRouteItem,
   MonitoringTrackRecord,
@@ -201,8 +200,6 @@ export function MonitoringPanel({
                 value={search}
               />
             </label>
-
-            <NotificationBell />
           </div>
         </div>
       </header>

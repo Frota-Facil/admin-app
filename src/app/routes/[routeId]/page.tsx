@@ -1,11 +1,12 @@
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
-import { NotificationBell } from "@/components/layout/NotificationBell";
+import { RouteReportDialog } from "@/components/routes/RouteReportDialog";
 import { TracksCard } from "@/components/routes/TracksCard";
 import { PageBackHeader } from "@/components/ui/PageBackHeader";
 import type { RouteDetailDTO } from "@/server/contracts/routes/route-detail-schema";
 import { fetchRouteDetailUseCase } from "@/server/use-cases/fetch-route-detail-use-case";
+import { formatDateTimeBR } from "@/utils/date-format";
 import { formatRouteDuration } from "../route-duration";
 
 type RouteDetailPageProps = {
@@ -52,14 +53,6 @@ const statusDisplay = {
   },
 } satisfies Record<DisplayStatus, { className: string; label: string }>;
 
-const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-});
-
 const EMPTY_VALUE = "Não informado";
 
 export default async function RouteDetailPage({
@@ -77,12 +70,7 @@ export default async function RouteDetailPage({
       <div className="min-h-screen bg-slate-100">
         <header className="border-b border-slate-200 bg-white px-8 py-5">
           <PageBackHeader
-            actions={
-              <div className="flex items-center gap-3">
-                <StatusBadge status={route.status} />
-                <NotificationBell />
-              </div>
-            }
+            actions={<StatusBadge status={route.status} />}
             backHref="/routes"
             subtitle="Informações completas da rota finalizada"
             title="Detalhes da rota"
@@ -105,23 +93,23 @@ export default async function RouteDetailPage({
                 <DetailItem
                   className="sm:col-span-2"
                   label="Relatório"
-                  value={route.reportMarkdown || "Sem relatório"}
+                  value={<RouteReportDialog report={route.reportMarkdown} />}
                 />
                 <DetailItem
                   label="Iniciada em"
-                  value={formatDateTime(route.startedAt)}
+                  value={formatDateTimeBR(route.startedAt)}
                 />
                 <DetailItem
                   label="Finalizada em"
-                  value={formatDateTime(route.finishedAt)}
+                  value={formatDateTimeBR(route.finishedAt)}
                 />
                 <DetailItem
                   label="Criada em"
-                  value={formatDateTime(route.createdAt)}
+                  value={formatDateTimeBR(route.createdAt)}
                 />
                 <DetailItem
                   label="Atualizada em"
-                  value={formatDateTime(route.updatedAt)}
+                  value={formatDateTimeBR(route.updatedAt)}
                 />
               </dl>
             </DetailCard>
@@ -146,11 +134,11 @@ export default async function RouteDetailPage({
                 />
                 <DetailItem
                   label="Início previsto"
-                  value={formatDateTime(route.request.predictedStartDate)}
+                  value={formatDateTimeBR(route.request.predictedStartDate)}
                 />
                 <DetailItem
                   label="Fim previsto"
-                  value={formatDateTime(route.request.predictedEndDate)}
+                  value={formatDateTimeBR(route.request.predictedEndDate)}
                 />
                 <DetailItem
                   className="sm:col-span-2"
@@ -164,11 +152,11 @@ export default async function RouteDetailPage({
                 />
                 <DetailItem
                   label="Criada em"
-                  value={formatDateTime(route.request.createdAt)}
+                  value={formatDateTimeBR(route.request.createdAt)}
                 />
                 <DetailItem
                   label="Atualizada em"
-                  value={formatDateTime(route.request.updatedAt)}
+                  value={formatDateTimeBR(route.request.updatedAt)}
                 />
               </dl>
             </DetailCard>
@@ -311,20 +299,6 @@ function normalizeStatus(status: string): DisplayStatus | null {
   }
 
   return null;
-}
-
-function formatDateTime(value?: Date | string | null) {
-  if (!value) {
-    return "-";
-  }
-
-  const date = value instanceof Date ? value : new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "-";
-  }
-
-  return dateTimeFormatter.format(date);
 }
 
 function formatVehicle(vehicle: RouteDetailDTO["request"]["vehicle"]) {

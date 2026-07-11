@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useToast } from "@/components/toast/ToastProvider";
 import { routeStartedEventSchema } from "@/server/contracts/routes/route-started-event";
 import { trackCreatedEventSchema } from "@/server/contracts/tracks/track-created-event";
+import { formatDateTimeBR } from "@/utils/date-format";
 
 export const TRACK_CREATED_EVENT = "admin-track-created";
 
@@ -74,11 +75,11 @@ function parseJson(data: string) {
 }
 
 function formatEventDate(value: string) {
-  const date = new Date(value);
+  const formattedDate = formatDateTimeBR(value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (formattedDate === "--") {
     return "horário não informado";
   }
 
-  return date.toLocaleString("pt-BR");
+  return formattedDate;
 }

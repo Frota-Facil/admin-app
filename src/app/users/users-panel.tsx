@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { deleteUserWithResultAction } from "@/app/users/actions";
-import { NotificationBell } from "@/components/layout/NotificationBell";
 import { useToast } from "@/components/toast/ToastProvider";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { UserDetailsModal } from "@/components/users/UserDetailsModal";
@@ -111,8 +110,6 @@ export function UsersPanel({ users }: UsersPanelProps) {
                 value={search}
               />
             </label>
-
-            <NotificationBell />
           </div>
         </div>
       </header>

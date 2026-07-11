@@ -7,7 +7,6 @@ import {
   approveRequestAction,
   rejectRequestAction,
 } from "@/app/requests/actions";
-import { NotificationBell } from "@/components/layout/NotificationBell";
 
 export type RequestListItem = {
   createdAt: string;
@@ -171,8 +170,6 @@ export function RequestsPanel({ requests }: RequestsPanelProps) {
               onToggleField={handleSearchFieldToggle}
               selectedFields={selectedSearchFields}
             />
-
-            <NotificationBell />
           </div>
         </div>
       </header>

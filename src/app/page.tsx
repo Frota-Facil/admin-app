@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
 import { AdminLayout } from "@/components/layout/AdminLayout";
-import { NotificationBell } from "@/components/layout/NotificationBell";
 import type { RequestResponseDTO } from "@/server/contracts/requests/request-response";
 import type { RouteDTO } from "@/server/contracts/routes/route-schema";
 import type { UserResponseDTO } from "@/server/contracts/users/user-schema";
@@ -113,8 +112,6 @@ export default async function Home() {
                   type="search"
                 />
               </label>
-
-              <NotificationBell />
             </div>
           </div>
         </header>

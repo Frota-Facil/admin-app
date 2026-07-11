@@ -1,5 +1,4 @@
 import { AdminLayout } from "@/components/layout/AdminLayout";
-import { NotificationBell } from "@/components/layout/NotificationBell";
 
 export default function RouteDetailLoading() {
   return (
@@ -15,8 +14,6 @@ export default function RouteDetailLoading() {
                 Informações completas da rota finalizada
               </p>
             </div>
-
-            <NotificationBell />
           </div>
         </header>
 

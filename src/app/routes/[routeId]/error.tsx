@@ -1,7 +1,6 @@
 "use client";
 
 import { AdminLayout } from "@/components/layout/AdminLayout";
-import { NotificationBell } from "@/components/layout/NotificationBell";
 
 export default function RouteDetailError() {
   return (
@@ -17,8 +16,6 @@ export default function RouteDetailError() {
                 Informações completas da rota finalizada
               </p>
             </div>
-
-            <NotificationBell />
           </div>
         </header>
 
