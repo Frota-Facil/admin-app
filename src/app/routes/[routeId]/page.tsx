@@ -6,6 +6,7 @@ import { TracksCard } from "@/components/routes/TracksCard";
 import { PageBackHeader } from "@/components/ui/PageBackHeader";
 import type { RouteDetailDTO } from "@/server/contracts/routes/route-detail-schema";
 import { fetchRouteDetailUseCase } from "@/server/use-cases/fetch-route-detail-use-case";
+import { formatRouteDuration } from "../route-duration";
 
 type RouteDetailPageProps = {
   params: Promise<{ routeId: string }>;
@@ -207,7 +208,13 @@ function SummaryCard({ route }: SummaryCardProps) {
         <SummaryItem label="Finalidade" value={route.request.reason || "-"} />
         <SummaryItem
           label="Duração"
-          value={formatDuration(route.startedAt, route.finishedAt)}
+          value={
+            formatRouteDuration(
+              route.startedAt,
+              route.finishedAt,
+              route.status,
+            ) ?? "—"
+          }
         />
         <SummaryItem
           label="Status"
@@ -322,41 +329,4 @@ function formatDateTime(value?: Date | string | null) {
 
 function formatVehicle(vehicle: RouteDetailDTO["request"]["vehicle"]) {
   return `${vehicle.model} · ${vehicle.plate}`;
-}
-
-function formatDuration(
-  startedAt?: Date | string | null,
-  finishedAt?: Date | string | null,
-) {
-  if (!startedAt || !finishedAt) {
-    return "-";
-  }
-
-  const start = startedAt instanceof Date ? startedAt : new Date(startedAt);
-  const finish = finishedAt instanceof Date ? finishedAt : new Date(finishedAt);
-
-  if (Number.isNaN(start.getTime()) || Number.isNaN(finish.getTime())) {
-    return "-";
-  }
-
-  if (finish.getTime() < start.getTime()) {
-    return "-";
-  }
-
-  const durationInMinutes = Math.max(
-    0,
-    Math.floor((finish.getTime() - start.getTime()) / 60000),
-  );
-  const hours = Math.floor(durationInMinutes / 60);
-  const minutes = durationInMinutes % 60;
-
-  if (hours === 0) {
-    return `${minutes}min`;
-  }
-
-  if (minutes === 0) {
-    return `${hours}h`;
-  }
-
-  return `${hours}h ${minutes}min`;
 }

@@ -6,13 +6,33 @@ const performedByUserSchema = z.object({
   name: z.string().nullish(),
 });
 
-export const auditLogResponseSchema = z.object({
-  action: z.string(),
-  createdAt: z.coerce.date(),
-  entityId: z.uuid().nullish(),
-  id: z.uuid(),
-  performedBy: z.union([z.uuid(), performedByUserSchema]).nullish(),
-});
+const performedBySchema = z.union([z.uuid(), performedByUserSchema]).nullish();
+
+export const auditLogResponseSchema = z.preprocess(
+  (value) => {
+    if (!value || typeof value !== "object") {
+      return value;
+    }
+
+    const auditLog = value as Record<string, unknown>;
+
+    return {
+      ...auditLog,
+      performedBy:
+        auditLog.performedBy ??
+        auditLog.performed_by ??
+        auditLog.performedById ??
+        auditLog.performed_by_id,
+    };
+  },
+  z.object({
+    action: z.string(),
+    createdAt: z.coerce.date(),
+    entityId: z.uuid().nullish(),
+    id: z.uuid(),
+    performedBy: performedBySchema,
+  }),
+);
 
 export type AuditLogResponseDTO = z.infer<typeof auditLogResponseSchema>;
 
