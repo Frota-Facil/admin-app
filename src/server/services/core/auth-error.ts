@@ -1,8 +1,20 @@
 import axios from "axios";
-import { redirect } from "next/navigation";
+
+export class CoreUnauthorizedError extends Error {
+  constructor() {
+    super("Core service returned 401.");
+    this.name = "CoreUnauthorizedError";
+  }
+}
+
+export function isCoreUnauthorizedError(
+  error: unknown,
+): error is CoreUnauthorizedError {
+  return error instanceof CoreUnauthorizedError;
+}
 
 export function handleCoreAuthError(error: unknown) {
   if (axios.isAxiosError(error) && error.response?.status === 401) {
-    redirect("/api/auth/logout?next=/login");
+    throw new CoreUnauthorizedError();
   }
 }

@@ -20,9 +20,12 @@ const roleLabels: Record<string, string> = {
 
 export function UserDetailsModal({ onClose, user }: UserDetailsModalProps) {
   const roleLabel = roleLabelFor(user.role);
+  const title = isDriverRole(user.role)
+    ? "Detalhes do motorista"
+    : "Detalhes do usuário";
 
   return (
-    <DetailsModal onClose={onClose} title="Detalhes do usuário">
+    <DetailsModal onClose={onClose} title={title}>
       <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
         <div className="rounded-lg border border-slate-200 bg-slate-50 px-5 py-6 text-center">
           <UserPhoto user={user} />
@@ -148,6 +151,10 @@ function roleLabelFor(role: string) {
   const normalizedRole = normalizeText(role);
 
   return roleLabels[normalizedRole] ?? role;
+}
+
+function isDriverRole(role: string) {
+  return ["driver", "motorista"].includes(normalizeText(role));
 }
 
 function normalizeText(value: string) {

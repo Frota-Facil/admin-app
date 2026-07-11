@@ -3,16 +3,16 @@ import {
   RequestsPanel,
 } from "@/app/requests/requests-panel";
 import { AdminLayout } from "@/components/layout/AdminLayout";
+import type { RequestResponseDTO } from "@/server/contracts/requests/request-response";
+import type { UserResponseDTO } from "@/server/contracts/users/user-schema";
+import type { VehicleResponseDTO } from "@/server/contracts/vehicles/vehicle-response";
+import { redirectCoreUnauthorized } from "@/server/navigation/redirect-core-unauthorized";
 import { fetchRequestsUseCase } from "@/server/use-cases/fetch-requests-use-case";
 import { fetchUsersUseCase } from "@/server/use-cases/fetch-users-use-case";
 import { fetchVehiclesUseCase } from "@/server/use-cases/fetch-vehicles-use-case";
 
 export default async function RequestsPage() {
-  const [requests, users, vehicles] = await Promise.all([
-    fetchRequestsUseCase(),
-    fetchUsersUseCase(),
-    fetchVehiclesUseCase(),
-  ]);
+  const { requests, users, vehicles } = await fetchRequestsPageData();
 
   const usersById = new Map(users.map((user) => [user.id, user]));
   const vehiclesById = new Map(
@@ -45,4 +45,28 @@ export default async function RequestsPage() {
       <RequestsPanel requests={requestItems} />
     </AdminLayout>
   );
+}
+
+type RequestsPageData = {
+  requests: RequestResponseDTO[];
+  users: UserResponseDTO[];
+  vehicles: VehicleResponseDTO[];
+};
+
+async function fetchRequestsPageData(): Promise<RequestsPageData> {
+  try {
+    const [requests, users, vehicles] = await Promise.all([
+      fetchRequestsUseCase(),
+      fetchUsersUseCase(),
+      fetchVehiclesUseCase(),
+    ]);
+
+    return {
+      requests,
+      users,
+      vehicles,
+    };
+  } catch (error) {
+    redirectCoreUnauthorized(error);
+  }
 }
