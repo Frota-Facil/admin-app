@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useToast } from "@/components/toast/ToastProvider";
 import { routeStartedEventSchema } from "@/server/contracts/routes/route-started-event";
 import { trackCreatedEventSchema } from "@/server/contracts/tracks/track-created-event";
-import { formatDateTimeBR } from "@/utils/date-format";
+import { formatDateTime } from "@/utils/date-format";
 
 export const TRACK_CREATED_EVENT = "admin-track-created";
 
@@ -75,9 +75,9 @@ function parseJson(data: string) {
 }
 
 function formatEventDate(value: string) {
-  const formattedDate = formatDateTimeBR(value);
+  const formattedDate = formatDateTime(value);
 
-  if (formattedDate === "--") {
+  if (formattedDate === "-") {
     return "horário não informado";
   }
 

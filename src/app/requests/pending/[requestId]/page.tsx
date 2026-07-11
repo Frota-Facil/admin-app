@@ -6,6 +6,7 @@ import {
 } from "@/app/requests/pending/[requestId]/actions";
 import { PageBackHeader } from "@/components/ui/PageBackHeader";
 import { fetchPendingRequestByIdUseCase } from "@/server/use-cases/fetch-pending-request-by-id-use-case";
+import { formatDateTime } from "@/utils/date-format";
 
 type PendingRequestDetailPageProps = {
   params: Promise<{ requestId: string }>;
@@ -46,15 +47,15 @@ export default async function PendingRequestDetailPage({
         <dt>Status</dt>
         <dd>{request.status}</dd>
         <dt>Início previsto</dt>
-        <dd>{request.predictedStartDate.toLocaleString("pt-BR")}</dd>
+        <dd>{formatDateTime(request.predictedStartDate)}</dd>
         <dt>Fim previsto</dt>
-        <dd>{request.predictedEndDate.toLocaleString("pt-BR")}</dd>
+        <dd>{formatDateTime(request.predictedEndDate)}</dd>
         <dt>Motivo</dt>
         <dd>{request.reason}</dd>
         <dt>Criada em</dt>
-        <dd>{request.createdAt.toLocaleString("pt-BR")}</dd>
+        <dd>{formatDateTime(request.createdAt)}</dd>
         <dt>Atualizada em</dt>
-        <dd>{request.updatedAt.toLocaleString("pt-BR")}</dd>
+        <dd>{formatDateTime(request.updatedAt)}</dd>
       </dl>
 
       <form action={approvePendingRequestAction.bind(null, requestId)}>

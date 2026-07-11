@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { DetailsModal } from "@/components/ui/DetailsModal";
 import type { VehicleResponseDTO } from "@/server/contracts/vehicles/vehicle-response";
+import { formatDateTime } from "@/utils/date-format";
 
 type VehicleDetailsModalProps = {
   driverName?: string | null;
@@ -148,19 +149,6 @@ function normalizeStatus(status: string): DisplayStatus {
   }
 
   return "UNAVAILABLE";
-}
-
-function formatDateTime(value: string) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "-";
-  }
-
-  return new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(date);
 }
 
 type IconProps = {

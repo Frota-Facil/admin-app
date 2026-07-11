@@ -4,6 +4,7 @@ import { type ReactNode, useMemo, useState } from "react";
 import { UserDetailsModal } from "@/components/users/UserDetailsModal";
 import type { AuditLogResponseDTO } from "@/server/contracts/audit-logs/audit-log-response";
 import type { UserResponseDTO } from "@/server/contracts/users/user-schema";
+import { formatDateTime } from "@/utils/date-format";
 
 type LogsPanelProps = {
   logs: AuditLogResponseDTO[];
@@ -41,14 +42,6 @@ const entityLabels: Record<string, string> = {
   USER: "Usuário",
   VEHICLE: "Veículo",
 };
-
-const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-});
 
 export function LogsPanel({ logs, users }: LogsPanelProps) {
   const [selectedUser, setSelectedUser] = useState<UserResponseDTO | null>(
@@ -221,16 +214,6 @@ function getPerformedById(performedBy: AuditLogResponseDTO["performedBy"]) {
   }
 
   return performedBy.id ?? null;
-}
-
-function formatDateTime(date: Date | string) {
-  const parsedDate = date instanceof Date ? date : new Date(date);
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    return "-";
-  }
-
-  return dateFormatter.format(parsedDate);
 }
 
 function formatAction(action: string) {

@@ -1,3 +1,5 @@
+import { getDateTimestamp } from "@/utils/date-format";
+
 const finishedRouteStatuses = new Set([
   "COMPLETED",
   "CONCLUIDA",
@@ -19,19 +21,19 @@ export function formatRouteDuration(
     return null;
   }
 
-  const start = startedAt instanceof Date ? startedAt : new Date(startedAt);
-  const finish = finishedAt instanceof Date ? finishedAt : new Date(finishedAt);
+  const startTimestamp = getDateTimestamp(startedAt);
+  const finishTimestamp = getDateTimestamp(finishedAt);
 
-  if (Number.isNaN(start.getTime()) || Number.isNaN(finish.getTime())) {
+  if (startTimestamp === null || finishTimestamp === null) {
     return null;
   }
 
-  if (finish.getTime() < start.getTime()) {
+  if (finishTimestamp < startTimestamp) {
     return null;
   }
 
   const durationInMinutes = Math.floor(
-    (finish.getTime() - start.getTime()) / 60000,
+    (finishTimestamp - startTimestamp) / 60000,
   );
   const hours = Math.floor(durationInMinutes / 60);
   const minutes = durationInMinutes % 60;

@@ -20,33 +20,12 @@ import type {
 } from "@/components/monitoring/types";
 import { TRACK_CREATED_EVENT } from "@/components/routes/RouteEventListener";
 import type { TrackCreatedEventDTO } from "@/server/contracts/tracks/track-created-event";
+import { formatDate, formatDateTime, formatTime } from "@/utils/date-format";
 
 type MonitoringPanelProps = {
   initialSelectedRouteId?: string | null;
   routes: ActiveRouteItem[];
 };
-
-const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  month: "2-digit",
-  timeZone: "America/Fortaleza",
-  year: "numeric",
-});
-
-const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
-  day: "2-digit",
-  month: "2-digit",
-  timeZone: "America/Fortaleza",
-  year: "numeric",
-});
-
-const timeFormatter = new Intl.DateTimeFormat("pt-BR", {
-  hour: "2-digit",
-  minute: "2-digit",
-  timeZone: "America/Fortaleza",
-});
 
 export function MonitoringPanel({
   initialSelectedRouteId = null,
@@ -695,36 +674,6 @@ function StatusBadge({ status }: StatusBadgeProps) {
       Em andamento
     </span>
   );
-}
-
-function formatDateTime(value: string) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "-";
-  }
-
-  return dateTimeFormatter.format(date);
-}
-
-function formatDate(value: string) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "-";
-  }
-
-  return dateFormatter.format(date);
-}
-
-function formatTime(value: string) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "-";
-  }
-
-  return timeFormatter.format(date);
 }
 
 function formatCoordinate(value: number) {

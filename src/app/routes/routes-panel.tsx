@@ -4,6 +4,7 @@ import { Eye } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
+import { formatDate } from "@/utils/date-format";
 
 export type RouteListItem = {
   date: string;
@@ -21,13 +22,6 @@ export type RouteListItem = {
 type RoutesPanelProps = {
   routes: RouteListItem[];
 };
-
-const routeDateFormatter = new Intl.DateTimeFormat("pt-BR", {
-  day: "2-digit",
-  month: "2-digit",
-  timeZone: "America/Fortaleza",
-  year: "numeric",
-});
 
 type RouteDisplayStatus =
   | "APPROVED"
@@ -261,16 +255,6 @@ function TableHead({ children }: TableHeadProps) {
       {children}
     </th>
   );
-}
-
-function formatDate(value: string) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "-";
-  }
-
-  return routeDateFormatter.format(date);
 }
 
 function normalizeText(value: string) {

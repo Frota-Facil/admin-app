@@ -7,6 +7,7 @@ import { VehicleDetailsModal } from "@/components/vehicles/VehicleDetailsModal";
 import type { RequestResponseDTO } from "@/server/contracts/requests/request-response";
 import type { UserResponseDTO } from "@/server/contracts/users/user-schema";
 import type { VehicleResponseDTO } from "@/server/contracts/vehicles/vehicle-response";
+import { formatDateTime } from "@/utils/date-format";
 
 type RequestDetailsPanelProps = {
   approver: UserResponseDTO | null;
@@ -360,19 +361,6 @@ function normalizeStatus(status: string): RequestDisplayStatus {
   }
 
   return "PENDING";
-}
-
-function formatDateTime(value: Date | string) {
-  const date = value instanceof Date ? value : new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "-";
-  }
-
-  return new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(date);
 }
 
 function formatPhone(phone?: string | null) {

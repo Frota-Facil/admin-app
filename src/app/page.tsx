@@ -17,6 +17,7 @@ import { fetchRequestsUseCase } from "@/server/use-cases/fetch-requests-use-case
 import { fetchRoutesUseCase } from "@/server/use-cases/fetch-routes-use-case";
 import { fetchUsersUseCase } from "@/server/use-cases/fetch-users-use-case";
 import { fetchVehiclesUseCase } from "@/server/use-cases/fetch-vehicles-use-case";
+import { APP_TIME_ZONE } from "@/utils/date-format";
 
 type DashboardData = {
   requests: RequestResponseDTO[];
@@ -49,6 +50,7 @@ const numberFormatter = new Intl.NumberFormat("pt-BR");
 
 const monthFormatter = new Intl.DateTimeFormat("pt-BR", {
   month: "short",
+  timeZone: APP_TIME_ZONE,
 });
 
 const routeUsageStatuses = new Set(["COMPLETED", "FINISHED", "STARTED"]);

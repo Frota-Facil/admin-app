@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { DetailsModal } from "@/components/ui/DetailsModal";
 import type { UserResponseDTO } from "@/server/contracts/users/user-schema";
+import { formatDateTime } from "@/utils/date-format";
 
 type UserDetailsModalProps = {
   onClose: () => void;
@@ -177,19 +178,6 @@ function formatPhone(phone: string) {
   }
 
   return phone;
-}
-
-function formatDateTime(value: Date | string) {
-  const date = value instanceof Date ? value : new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "-";
-  }
-
-  return new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(date);
 }
 
 function initialsFor(name: string) {

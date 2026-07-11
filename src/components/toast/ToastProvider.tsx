@@ -27,6 +27,7 @@ type ToastContextValue = {
 };
 
 const ToastContext = createContext<ToastContextValue | null>(null);
+let fallbackToastId = 0;
 
 type ToastProviderProps = {
   children: ReactNode;
@@ -43,7 +44,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
     const id =
       typeof crypto !== "undefined" && "randomUUID" in crypto
         ? crypto.randomUUID()
-        : `${Date.now()}-${Math.random()}`;
+        : createFallbackToastId();
 
     setToasts((current) => [...current, { ...toast, id }]);
   }, []);
@@ -64,6 +65,12 @@ export function ToastProvider({ children }: ToastProviderProps) {
       </div>
     </ToastContext.Provider>
   );
+}
+
+function createFallbackToastId() {
+  fallbackToastId += 1;
+
+  return `toast-${fallbackToastId}`;
 }
 
 export function useToast() {

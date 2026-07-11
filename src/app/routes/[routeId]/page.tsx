@@ -6,7 +6,7 @@ import { TracksCard } from "@/components/routes/TracksCard";
 import { PageBackHeader } from "@/components/ui/PageBackHeader";
 import type { RouteDetailDTO } from "@/server/contracts/routes/route-detail-schema";
 import { fetchRouteDetailUseCase } from "@/server/use-cases/fetch-route-detail-use-case";
-import { formatDateTimeBR } from "@/utils/date-format";
+import { formatDateTime } from "@/utils/date-format";
 import { formatRouteDuration } from "../route-duration";
 
 type RouteDetailPageProps = {
@@ -97,19 +97,19 @@ export default async function RouteDetailPage({
                 />
                 <DetailItem
                   label="Iniciada em"
-                  value={formatDateTimeBR(route.startedAt)}
+                  value={formatDateTime(route.startedAt)}
                 />
                 <DetailItem
                   label="Finalizada em"
-                  value={formatDateTimeBR(route.finishedAt)}
+                  value={formatDateTime(route.finishedAt)}
                 />
                 <DetailItem
                   label="Criada em"
-                  value={formatDateTimeBR(route.createdAt)}
+                  value={formatDateTime(route.createdAt)}
                 />
                 <DetailItem
                   label="Atualizada em"
-                  value={formatDateTimeBR(route.updatedAt)}
+                  value={formatDateTime(route.updatedAt)}
                 />
               </dl>
             </DetailCard>
@@ -134,11 +134,11 @@ export default async function RouteDetailPage({
                 />
                 <DetailItem
                   label="Início previsto"
-                  value={formatDateTimeBR(route.request.predictedStartDate)}
+                  value={formatDateTime(route.request.predictedStartDate)}
                 />
                 <DetailItem
                   label="Fim previsto"
-                  value={formatDateTimeBR(route.request.predictedEndDate)}
+                  value={formatDateTime(route.request.predictedEndDate)}
                 />
                 <DetailItem
                   className="sm:col-span-2"
@@ -152,11 +152,11 @@ export default async function RouteDetailPage({
                 />
                 <DetailItem
                   label="Criada em"
-                  value={formatDateTimeBR(route.request.createdAt)}
+                  value={formatDateTime(route.request.createdAt)}
                 />
                 <DetailItem
                   label="Atualizada em"
-                  value={formatDateTimeBR(route.request.updatedAt)}
+                  value={formatDateTime(route.request.updatedAt)}
                 />
               </dl>
             </DetailCard>

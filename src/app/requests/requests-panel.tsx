@@ -7,6 +7,7 @@ import {
   approveRequestAction,
   rejectRequestAction,
 } from "@/app/requests/actions";
+import { formatDate, formatTime } from "@/utils/date-format";
 
 export type RequestListItem = {
   createdAt: string;
@@ -369,10 +370,10 @@ function RequestCard({ request }: RequestCardProps) {
 
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
             <InfoItem icon={<CalendarIcon className="h-4 w-4" />}>
-              {formatDateFromIso(request.startDate)}
+              {formatDate(request.startDate)}
             </InfoItem>
             <InfoItem icon={<ClockIcon className="h-4 w-4" />}>
-              {formatTimeRangeFromIso(request.startDate, request.endDate)}
+              {formatTimeRange(request.startDate, request.endDate)}
             </InfoItem>
             <InfoItem icon={<DestinationIcon className="h-4 w-4" />}>
               {`Destino: ${request.destination || "Não informado"}`}
@@ -533,101 +534,15 @@ function normalizeText(value: string) {
     .toLocaleLowerCase("pt-BR");
 }
 
-// Keep request schedule display in UTC-03 without depending on browser timezone.
-const REQUEST_DISPLAY_UTC_OFFSET_MINUTES = -3 * 60;
+function formatTimeRange(start?: string | null, end?: string | null) {
+  const startTime = formatTime(start);
+  const endTime = formatTime(end);
 
-type DateTimeParts = {
-  day: string;
-  hour: string | null;
-  minute: string | null;
-  month: string;
-  year: string;
-};
-
-function formatDateFromIso(value?: string | null) {
-  const parts = getDateTimePartsFromIso(value);
-
-  if (!parts) {
-    return "—";
-  }
-
-  return `${parts.day}/${parts.month}/${parts.year}`;
-}
-
-function formatTimeFromIso(value?: string | null) {
-  const parts = getDateTimePartsFromIso(value);
-
-  if (!parts?.hour || !parts.minute) {
-    return "—";
-  }
-
-  return `${parts.hour}:${parts.minute}`;
-}
-
-function formatTimeRangeFromIso(start?: string | null, end?: string | null) {
-  const startTime = formatTimeFromIso(start);
-  const endTime = formatTimeFromIso(end);
-
-  if (startTime === "—" || endTime === "—") {
-    return "—";
+  if (startTime === "-" || endTime === "-") {
+    return "-";
   }
 
   return `${startTime} - ${endTime}`;
-}
-
-function getDateTimePartsFromIso(value?: string | null): DateTimeParts | null {
-  if (!value) {
-    return null;
-  }
-
-  if (!hasExplicitTimezone(value)) {
-    return getDateTimePartsFromLocalIso(value);
-  }
-
-  const timestamp = Date.parse(value);
-
-  if (Number.isNaN(timestamp)) {
-    return getDateTimePartsFromLocalIso(value);
-  }
-
-  const shiftedDate = new Date(
-    timestamp + REQUEST_DISPLAY_UTC_OFFSET_MINUTES * 60 * 1000,
-  );
-
-  return {
-    day: padDatePart(shiftedDate.getUTCDate()),
-    hour: padDatePart(shiftedDate.getUTCHours()),
-    minute: padDatePart(shiftedDate.getUTCMinutes()),
-    month: padDatePart(shiftedDate.getUTCMonth() + 1),
-    year: String(shiftedDate.getUTCFullYear()),
-  };
-}
-
-function getDateTimePartsFromLocalIso(value: string): DateTimeParts | null {
-  const [datePart, timePart] = value.split("T");
-  const [year, month, day] = datePart.split("-");
-
-  if (!year || !month || !day) {
-    return null;
-  }
-
-  const [hour, minute] = timePart?.split(":") ?? [];
-
-  return {
-    day: padDatePart(day),
-    hour: hour ? padDatePart(hour) : null,
-    minute: minute ? padDatePart(minute) : null,
-    month: padDatePart(month),
-    year,
-  };
-}
-
-function hasExplicitTimezone(value: string) {
-  return /(?:Z|[+-]\d{2}:?\d{2})$/i.test(value);
-}
-
-function padDatePart(value: number | string) {
-  return String(value).padStart(2, "0");
 }
 
 type IconProps = {
