@@ -3,9 +3,12 @@
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import type { ChangeEvent, ReactNode } from "react";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
+import type { Area } from "react-easy-crop";
 import type { UserFormState } from "@/app/users/actions";
+import { ImageCropModal } from "@/components/ui/ImageCropModal";
 import type { UserResponseDTO } from "@/server/contracts/users/user-schema";
+import { getCroppedImageFile } from "@/utils/crop-image";
 import { formatCpf, formatPhone, onlyNumbers } from "@/utils/masks";
 
 type UserFormProps = {
@@ -24,7 +27,33 @@ const fieldControlClassName =
 const passwordControlClassName =
   "h-11 w-full rounded-lg border border-slate-200 bg-white py-0 pl-3 pr-11 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-300 focus:ring-4 focus:ring-blue-100";
 
-const acceptedPhotoTypes = ["image/jpeg", "image/png", "image/webp"];
+const USER_PHOTO_ASPECT_RATIO = 1;
+
+type AcceptedUserPhotoMimeType = "image/jpeg" | "image/png" | "image/webp";
+
+type PendingCropPhoto = {
+  fileName: string;
+  mimeType: AcceptedUserPhotoMimeType;
+  src: string;
+};
+
+type CroppedUserPhoto = {
+  file: File;
+  previewUrl: string;
+};
+
+const acceptedPhotoMimeTypes = new Set<string>([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
+
+const photoMimeTypeByExtension: Record<string, AcceptedUserPhotoMimeType> = {
+  jpeg: "image/jpeg",
+  jpg: "image/jpeg",
+  png: "image/png",
+  webp: "image/webp",
+};
 
 export function UserForm({
   action,
@@ -33,55 +62,127 @@ export function UserForm({
   user,
 }: UserFormProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
+  const [cropError, setCropError] = useState<string | null>(null);
+  const [croppedPhoto, setCroppedPhoto] = useState<CroppedUserPhoto | null>(
+    null,
+  );
+  const [isApplyingCrop, setIsApplyingCrop] = useState(false);
+  const [pendingCropPhoto, setPendingCropPhoto] =
+    useState<PendingCropPhoto | null>(null);
   const [photoError, setPhotoError] = useState("");
   const [photoFileName, setPhotoFileName] = useState("");
+  const [removePhoto, setRemovePhoto] = useState(false);
   const [state, formAction, isPending] = useActionState(action, {});
   const [cpf, setCpf] = useState(formatCpf(user?.cpf ?? ""));
   const [cnh, setCnh] = useState(onlyNumbers(user?.cnh ?? "").slice(0, 11));
   const [phone, setPhone] = useState(formatPhone(user?.phone ?? ""));
+  const photoInputRef = useRef<HTMLInputElement>(null);
   const fieldErrors = state.fieldErrors ?? {};
 
   useEffect(() => {
     return () => {
-      if (photoPreviewUrl) {
-        URL.revokeObjectURL(photoPreviewUrl);
+      if (pendingCropPhoto) {
+        URL.revokeObjectURL(pendingCropPhoto.src);
       }
     };
-  }, [photoPreviewUrl]);
+  }, [pendingCropPhoto]);
+
+  useEffect(() => {
+    return () => {
+      if (croppedPhoto) {
+        URL.revokeObjectURL(croppedPhoto.previewUrl);
+      }
+    };
+  }, [croppedPhoto]);
+
+  function clearPhotoInput() {
+    if (photoInputRef.current) {
+      photoInputRef.current.value = "";
+    }
+  }
+
+  function handleFormAction(formData: FormData) {
+    formData.delete("photo");
+
+    if (croppedPhoto) {
+      formData.set("photo", croppedPhoto.file);
+    }
+
+    formAction(formData);
+  }
 
   function handlePhotoChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
 
-    if (photoPreviewUrl) {
-      URL.revokeObjectURL(photoPreviewUrl);
-    }
+    setCropError(null);
+    setPhotoError("");
 
     if (!file) {
-      setPhotoPreviewUrl(null);
-      setPhotoError("");
-      setPhotoFileName("");
       return;
     }
 
-    if (!acceptedPhotoTypes.includes(file.type)) {
-      event.target.value = "";
-      setPhotoPreviewUrl(null);
+    const mimeType = resolveUserPhotoMimeType(file);
+
+    if (!mimeType) {
       setPhotoError("A foto do motorista deve ser JPG, PNG ou WebP.");
-      setPhotoFileName("");
+      clearPhotoInput();
       return;
     }
 
-    setPhotoPreviewUrl(URL.createObjectURL(file));
-    setPhotoError("");
-    setPhotoFileName(file.name);
+    setPendingCropPhoto({
+      fileName: file.name,
+      mimeType,
+      src: URL.createObjectURL(file),
+    });
   }
 
-  const previewUrl = photoPreviewUrl ?? user?.photoUrl ?? null;
+  function handleCancelCrop() {
+    setCropError(null);
+    setIsApplyingCrop(false);
+    setPendingCropPhoto(null);
+    clearPhotoInput();
+  }
+
+  async function handleApplyCrop(croppedAreaPixels: Area) {
+    if (!pendingCropPhoto || isApplyingCrop) {
+      return;
+    }
+
+    setCropError(null);
+    setIsApplyingCrop(true);
+
+    try {
+      const file = await getCroppedImageFile({
+        croppedAreaPixels,
+        fileName: buildCroppedUserPhotoFileName(
+          pendingCropPhoto.fileName,
+          pendingCropPhoto.mimeType,
+        ),
+        imageSrc: pendingCropPhoto.src,
+        mimeType: pendingCropPhoto.mimeType,
+      });
+
+      setCroppedPhoto({
+        file,
+        previewUrl: URL.createObjectURL(file),
+      });
+      setPhotoError("");
+      setPhotoFileName(file.name);
+      setPendingCropPhoto(null);
+      setRemovePhoto(false);
+      clearPhotoInput();
+    } catch (error) {
+      setCropError(getCropImageErrorMessage(error));
+    } finally {
+      setIsApplyingCrop(false);
+    }
+  }
+
+  const previewUrl = croppedPhoto?.previewUrl ?? user?.photoUrl ?? null;
 
   return (
     <form
-      action={formAction}
+      action={handleFormAction}
       className="w-full max-w-none overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
       noValidate
     >
@@ -225,14 +326,14 @@ export function UserForm({
           label="Foto do motorista"
         >
           <div className="flex flex-col gap-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-4 transition focus-within:border-blue-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-100 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0 flex-1 ">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center h-">
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <input
                   accept="image/jpeg,image/png,image/webp"
                   className="sr-only"
                   id="photo"
-                  name="photo"
                   onChange={handlePhotoChange}
+                  ref={photoInputRef}
                   type="file"
                 />
                 <label
@@ -257,7 +358,7 @@ export function UserForm({
             </div>
 
             {previewUrl ? (
-              <figure className="flex shrink-0 items-center gap-3 ">
+              <figure className="flex shrink-0 items-center gap-3">
                 {/* biome-ignore lint/performance/noImgElement: preview uses local object URLs and remote MinIO URLs. */}
                 <img
                   alt="Prévia da foto do motorista"
@@ -265,7 +366,7 @@ export function UserForm({
                   src={previewUrl}
                 />
                 <figcaption className="sr-only">
-                  {photoPreviewUrl ? "Prévia da foto" : "Foto atual"}
+                  {croppedPhoto ? "Prévia da foto" : "Foto atual"}
                 </figcaption>
               </figure>
             ) : (
@@ -282,12 +383,14 @@ export function UserForm({
         name="currentPhotoUrl"
         type="hidden"
       />
-      {user?.photoUrl ? (
+      {user?.photoUrl && !croppedPhoto ? (
         <div className="mx-6 mb-6">
           <label className="flex items-center gap-2 text-sm text-slate-600">
             <input
+              checked={removePhoto}
               className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-100"
               name="removePhoto"
+              onChange={(event) => setRemovePhoto(event.target.checked)}
               type="checkbox"
               value="true"
             />
@@ -311,8 +414,64 @@ export function UserForm({
           {isPending ? "Salvando..." : submitLabel}
         </button>
       </div>
+
+      {pendingCropPhoto ? (
+        <ImageCropModal
+          applyLabel="Aplicar"
+          aspectRatio={USER_PHOTO_ASPECT_RATIO}
+          errorMessage={cropError}
+          imageSrc={pendingCropPhoto.src}
+          isApplying={isApplyingCrop}
+          onApply={(croppedAreaPixels) => {
+            void handleApplyCrop(croppedAreaPixels);
+          }}
+          onCancel={handleCancelCrop}
+          title="Ajustar foto do motorista"
+        />
+      ) : null}
     </form>
   );
+}
+
+function resolveUserPhotoMimeType(file: File) {
+  if (
+    acceptedPhotoMimeTypes.has(file.type) &&
+    isAcceptedUserPhotoMimeType(file.type)
+  ) {
+    return file.type;
+  }
+
+  const extension = file.name.split(".").pop()?.toLocaleLowerCase("pt-BR");
+
+  if (!extension) {
+    return null;
+  }
+
+  return photoMimeTypeByExtension[extension] ?? null;
+}
+
+function isAcceptedUserPhotoMimeType(
+  mimeType: string,
+): mimeType is AcceptedUserPhotoMimeType {
+  return acceptedPhotoMimeTypes.has(mimeType);
+}
+
+function buildCroppedUserPhotoFileName(
+  fileName: string,
+  mimeType: AcceptedUserPhotoMimeType,
+) {
+  const baseName = fileName.replace(/\.[^/.]+$/, "").trim() || "motorista";
+  const extension = mimeType === "image/jpeg" ? "jpg" : mimeType.split("/")[1];
+
+  return `${baseName}-ajustada.${extension}`;
+}
+
+function getCropImageErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return "Não foi possível ajustar a foto. Tente novamente.";
 }
 
 type FormFieldProps = {
