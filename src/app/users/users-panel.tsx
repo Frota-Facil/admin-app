@@ -10,6 +10,7 @@ import { UserDetailsModal } from "@/components/users/UserDetailsModal";
 import type { UserResponseDTO } from "@/server/contracts/users/user-schema";
 
 type UsersPanelProps = {
+  initialSelectedUserId?: string;
   users: UserResponseDTO[];
 };
 
@@ -22,7 +23,7 @@ const roleLabels: Record<string, string> = {
   motorista: "Motorista",
 };
 
-export function UsersPanel({ users }: UsersPanelProps) {
+export function UsersPanel({ initialSelectedUserId, users }: UsersPanelProps) {
   const router = useRouter();
   const { showToast } = useToast();
   const [search, setSearch] = useState("");
@@ -30,8 +31,8 @@ export function UsersPanel({ users }: UsersPanelProps) {
   const [userToDelete, setUserToDelete] = useState<UserResponseDTO | null>(
     null,
   );
-  const [selectedUser, setSelectedUser] = useState<UserResponseDTO | null>(
-    null,
+  const [selectedUser, setSelectedUser] = useState<UserResponseDTO | null>(() =>
+    users.find((user) => user.id === initialSelectedUserId) ?? null,
   );
 
   const filteredUsers = useMemo(() => {
@@ -49,6 +50,14 @@ export function UsersPanel({ users }: UsersPanelProps) {
       );
     });
   }, [search, users]);
+
+  function handleCloseUserDetails() {
+    setSelectedUser(null);
+
+    if (initialSelectedUserId) {
+      router.replace("/users", { scroll: false });
+    }
+  }
 
   async function handleConfirmDeleteUser() {
     if (!userToDelete || isDeletingUser) {
@@ -152,7 +161,7 @@ export function UsersPanel({ users }: UsersPanelProps) {
 
       {selectedUser ? (
         <UserDetailsModal
-          onClose={() => setSelectedUser(null)}
+          onClose={handleCloseUserDetails}
           user={selectedUser}
         />
       ) : null}

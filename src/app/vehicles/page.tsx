@@ -4,12 +4,19 @@ import type { VehicleResponseDTO } from "@/server/contracts/vehicles/vehicle-res
 import { redirectCoreUnauthorized } from "@/server/navigation/redirect-core-unauthorized";
 import { fetchVehiclesUseCase } from "@/server/use-cases/fetch-vehicles-use-case";
 
-export default async function VehiclesPage() {
+type VehiclesPageProps = {
+  searchParams: Promise<{ details?: string }>;
+};
+
+export default async function VehiclesPage({
+  searchParams,
+}: VehiclesPageProps) {
+  const { details } = await searchParams;
   const vehicles = await fetchVehiclesPageData();
 
   return (
     <AdminLayout>
-      <VehiclesPanel vehicles={vehicles} />
+      <VehiclesPanel initialSelectedVehicleId={details} vehicles={vehicles} />
     </AdminLayout>
   );
 }

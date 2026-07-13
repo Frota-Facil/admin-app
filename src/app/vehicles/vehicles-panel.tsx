@@ -10,6 +10,7 @@ import { VehicleDetailsModal } from "@/components/vehicles/VehicleDetailsModal";
 import type { VehicleResponseDTO } from "@/server/contracts/vehicles/vehicle-response";
 
 type VehiclesPanelProps = {
+  initialSelectedVehicleId?: string;
   vehicles: VehicleResponseDTO[];
 };
 
@@ -61,7 +62,10 @@ const typeLabels: Record<string, string> = {
 
 const numberFormatter = new Intl.NumberFormat("pt-BR");
 
-export function VehiclesPanel({ vehicles }: VehiclesPanelProps) {
+export function VehiclesPanel({
+  initialSelectedVehicleId,
+  vehicles,
+}: VehiclesPanelProps) {
   const router = useRouter();
   const { showToast } = useToast();
   const [search, setSearch] = useState("");
@@ -70,7 +74,10 @@ export function VehiclesPanel({ vehicles }: VehiclesPanelProps) {
     useState<VehicleResponseDTO | null>(null);
   const [isDeletingVehicle, setIsDeletingVehicle] = useState(false);
   const [selectedVehicle, setSelectedVehicle] =
-    useState<VehicleResponseDTO | null>(null);
+    useState<VehicleResponseDTO | null>(() =>
+      vehicles.find((vehicle) => vehicle.id === initialSelectedVehicleId) ??
+      null,
+    );
 
   const filteredVehicles = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase("pt-BR");
@@ -88,6 +95,14 @@ export function VehiclesPanel({ vehicles }: VehiclesPanelProps) {
       return matchesSearch && matchesStatus;
     });
   }, [search, statusFilter, vehicles]);
+
+  function handleCloseVehicleDetails() {
+    setSelectedVehicle(null);
+
+    if (initialSelectedVehicleId) {
+      router.replace("/vehicles", { scroll: false });
+    }
+  }
 
   async function handleConfirmDeleteVehicle() {
     if (!vehicleToDelete || isDeletingVehicle) {
@@ -178,7 +193,7 @@ export function VehiclesPanel({ vehicles }: VehiclesPanelProps) {
 
       {selectedVehicle ? (
         <VehicleDetailsModal
-          onClose={() => setSelectedVehicle(null)}
+          onClose={handleCloseVehicleDetails}
           vehicle={selectedVehicle}
         />
       ) : null}

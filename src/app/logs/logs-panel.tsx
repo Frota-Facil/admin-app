@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { type ReactNode, useMemo, useState } from "react";
 import { UserDetailsModal } from "@/components/users/UserDetailsModal";
 import type { AuditLogResponseDTO } from "@/server/contracts/audit-logs/audit-log-response";
@@ -91,7 +92,6 @@ function AuditLogsTable({
               <TableHead>Ação</TableHead>
               <TableHead>Entidade</TableHead>
               <TableHead>Realizado por</TableHead>
-              <TableHead>ID da entidade</TableHead>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
@@ -99,7 +99,7 @@ function AuditLogsTable({
               <tr>
                 <td
                   className="px-4 py-10 text-center text-sm font-medium text-slate-500"
-                  colSpan={5}
+                  colSpan={4}
                 >
                   Nenhum log disponível no momento.
                 </td>
@@ -114,7 +114,10 @@ function AuditLogsTable({
                     {formatAction(log.action)}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600">
-                    {formatEntity(log.action)}
+                    <EntityCell
+                      action={log.action}
+                      entityId={log.entityId}
+                    />
                   </td>
                   <td className="px-4 py-4 text-sm text-slate-600">
                     <PerformedByCell
@@ -123,11 +126,6 @@ function AuditLogsTable({
                       usersById={usersById}
                     />
                   </td>
-                  <td className="px-4 py-4 text-sm text-slate-500">
-                    <span className="block max-w-[260px] truncate font-mono text-xs">
-                      {log.entityId ?? "-"}
-                    </span>
-                  </td>
                 </tr>
               ))
             )}
@@ -135,6 +133,30 @@ function AuditLogsTable({
         </table>
       </div>
     </section>
+  );
+}
+
+type EntityCellProps = {
+  action: string;
+  entityId: string | null | undefined;
+};
+
+function EntityCell({ action, entityId }: EntityCellProps) {
+  const href = entityId ? getEntityHref(action, entityId) : null;
+  const label = formatEntity(action);
+
+  if (!href) {
+    return label;
+  }
+
+  return (
+    <Link
+      className="font-semibold text-blue-700 transition hover:text-blue-800 hover:underline focus:outline-none focus:ring-4 focus:ring-blue-100"
+      href={href}
+      title={`Ver detalhes de ${label.toLocaleLowerCase("pt-BR")}`}
+    >
+      {label}
+    </Link>
   );
 }
 
@@ -228,4 +250,26 @@ function formatEntity(action: string) {
   }
 
   return entityLabels[entity] ?? entity;
+}
+
+function getEntityHref(action: string, entityId: string) {
+  const [entity, operation] = action.split(/[._]/);
+
+  if (operation === "DELETED") {
+    return null;
+  }
+
+  switch (entity) {
+    case "REQUEST":
+      return `/requests/${entityId}`;
+    case "ROUTE":
+    case "TRIP":
+      return `/routes/${entityId}`;
+    case "USER":
+      return `/users?details=${entityId}`;
+    case "VEHICLE":
+      return `/vehicles?details=${entityId}`;
+    default:
+      return null;
+  }
 }
